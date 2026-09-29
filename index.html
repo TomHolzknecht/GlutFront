@@ -117,7 +117,14 @@
     padding:14px; display:flex; flex-direction:column; gap:8px; cursor:pointer; text-align:left;
     transition:border-color .15s ease, transform .12s ease;
   }
-  .map-card:hover{border-color:var(--ember-orange); transform:translateY(-2px);}
+  /* Nur auf Geraeten mit echtem Hover/Maus (Fix 092926): auf Touch-Geraeten loest
+     iOS/Android beim Antippen kurz :hover aus, bevor der eigentliche Klick
+     ausgewertet wird - verschob der Transform die Karte (und den "Spielen"-Knopf
+     darin) genau in dem Moment, in dem der Finger auftippt, konnte der Tap ins
+     Leere gehen bzw. als Scroll statt als Klick gewertet werden. */
+  @media (hover:hover) and (pointer:fine){
+    .map-card:hover{border-color:var(--ember-orange); transform:translateY(-2px);}
+  }
   .map-card canvas{width:100%; height:auto; border-radius:6px; background:#0E0B09; display:block;}
   .map-card-head{display:flex; justify-content:space-between; align-items:baseline;}
   .map-card-name{font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--parchment);}
@@ -292,8 +299,15 @@
 
   /* ===== Modals ===== */
   .modal-overlay{
-    position:fixed; inset:0; background:rgba(8,6,5,0.78); display:none; align-items:center; justify-content:center;
-    z-index:50; padding:16px;
+    /* overflow-y:auto + align-items:flex-start statt nur center (Fix 092926, Darius-
+       Bericht "Handy: Kartenauswahl nicht bedienbar"): mit align-items:center UND
+       einem hoeheren Inhalt als der Bildschirm gab es KEINE Moeglichkeit, das
+       Overlay selbst zu scrollen - Titel oben bzw. Karten unten ragten unerreichbar
+       ueber den sichtbaren Bereich hinaus. Bisher gab es diesen Fix nur fuer das
+       Handy-Querformat (Media Query unten); im normalen Hochformat, dem
+       Standardfall auf dem Handy, fehlte er komplett. */
+    position:fixed; inset:0; background:rgba(8,6,5,0.78); display:none; align-items:flex-start; justify-content:center;
+    overflow-y:auto; z-index:50; padding:16px;
   }
   .modal-overlay.show{display:flex;}
   .modal-card{
@@ -301,7 +315,11 @@
     max-width:420px; width:100%; box-shadow:0 0 40px rgba(232,116,42,0.25);
   }
   .modal-card-wide{max-width:680px;}
-  #mapSelectBody, #leaderboardBody{max-height:65vh; overflow-y:auto; padding-right:4px; margin-bottom:6px;}
+  /* Kein eigenes max-height/overflow-y hier (Fix 092926): zusaetzlich zum jetzt
+     scrollbaren .modal-overlay ergab das zwei verschachtelte Scroll-Bereiche -
+     auf Touch-Geraeten ein bekannter Quell fuer haengenbleibende/verschluckte
+     Scroll- und Tap-Gesten. Ein einziger Scroll-Container (das Overlay) reicht. */
+  #mapSelectBody, #leaderboardBody{padding-right:4px; margin-bottom:6px;}
   .modal-title{font-family:var(--font-display); font-weight:800; font-size:28px; margin:0 0 4px; color:var(--molten-gold);}
   .modal-sub{color:var(--parchment-dim); font-size:14px; margin:0 0 16px;}
   .settings-row{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
@@ -429,11 +447,10 @@
        auf kurzen Bildschirmen oben ausrichten statt zentriert und selbst
        scrollbar machen, sonst ragt der Inhalt oben/unten aus dem
        sichtbaren Bereich raus und ist nicht erreichbar. ---- */
-    .modal-overlay{ align-items:flex-start; padding:8px; }
-    .modal-card{ max-height:96vh; overflow-y:auto; padding:14px; margin-top:2px; }
+    .modal-overlay{ padding:8px; }
+    .modal-card{ max-height:96vh; padding:14px; margin-top:2px; }
     .modal-title{ font-size:19px; }
     .modal-sub{ font-size:12.5px; margin:0 0 10px; }
-    #mapSelectBody, #leaderboardBody{ max-height:50vh; }
   }
 </style>
 </head>
