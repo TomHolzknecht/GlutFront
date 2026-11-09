@@ -238,6 +238,15 @@
   #waveBarText span{color:var(--text-muted);}
   #wavePreview:empty{display:none;}
   #wavePreview{display:flex; flex-wrap:wrap; gap:4px; min-height:26px;}
+  #wavePreview.boss{outline:2px solid var(--danger); outline-offset:2px; border-radius:3px;}
+  .wp-chip{
+    display:inline-flex; align-items:center; gap:1px; padding:0 5px 0 0; min-height:26px; cursor:pointer;
+    background:var(--ink); color:var(--text); border:1px solid var(--line); border-radius:3px;
+    font-family:var(--font-num); font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .wp-chip canvas{width:24px; height:24px; display:block;}
+  .wp-chip.boss{border-color:var(--danger); color:#FF7462;}
+  .wp-note{font-size:11px; color:var(--text-muted); align-self:center;}
   #startWaveBtn{width:100%; min-height:42px;}
 
   #buildMenu{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:7px;}
@@ -250,7 +259,7 @@
   }
   .tower-card canvas{grid-area:ic; width:42px; height:42px; display:block;}
   .tower-card .tname{
-    grid-area:name; align-self:end; font-family:var(--font-display); font-stretch:75%; font-weight:700; font-size:13px; line-height:1.05;
+    grid-area:name; align-self:end; font-family:var(--font-display); font-stretch:75%; font-weight:700; font-size:13px; line-height:1.35;
     letter-spacing:.05em; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .tower-card .tcost{grid-area:cost; align-self:start; display:flex; align-items:center; gap:3px; font-family:var(--font-num); font-size:13px; font-weight:700;}
@@ -273,8 +282,8 @@
   .sel-head{display:flex; align-items:center; gap:6px;}
   .sel-head canvas{width:38px; height:38px; flex:none;}
   .sel-title{flex:1; min-width:0;}
-  .sel-name{font-family:var(--font-display); font-stretch:75%; font-weight:800; font-size:17px; line-height:1; letter-spacing:.05em; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .sel-sub{font-size:11px; color:var(--ink-muted); margin-top:2px;}
+  .sel-name{font-family:var(--font-display); font-stretch:75%; font-weight:800; font-size:17px; line-height:1.3; letter-spacing:.05em; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .sel-sub{font-size:11px; color:var(--ink-muted);}
   .sel-level-dots{display:flex; gap:3px; margin-top:4px;}
   .lvl-dot{width:12px; height:5px; border-radius:1px; background:rgba(14,11,9,.2);}
   .lvl-dot.filled{background:var(--ink);}
@@ -287,10 +296,20 @@
   .sel-stats{display:grid; grid-template-columns:1fr 1fr; gap:1px 8px; font-size:11px; color:var(--ink-muted);}
   .sel-stats b{font-family:var(--font-num); font-size:13px; color:var(--ink); font-variant-numeric:tabular-nums;}
   .sel-note{font-size:11px; line-height:1.35; color:var(--ink-muted);}
+  .mode-row{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); border:2px solid var(--ink); border-radius:4px; overflow:hidden;}
+  .mode-btn{
+    background:none; border:none; border-left:2px solid var(--ink); color:var(--ink); cursor:pointer; padding:0; min-height:34px;
+    font-family:var(--font-display); font-stretch:75%; font-weight:700; font-size:13px; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .mode-btn:first-child{border-left:none;}
+  .mode-btn.active{background:var(--ink); color:var(--paper);}
   .sel-actions{display:flex; flex-direction:column; gap:7px;}
+  .sel-actions .sel-note{margin-top:-4px;}
   .sel-actions .btn{width:100%; font-size:15px; min-height:42px; padding:7px 8px; gap:6px;}
   .sel-actions .btn .cost{font-family:var(--font-num); font-size:13px; letter-spacing:0; margin-left:auto; display:inline-flex; align-items:center; gap:2px;}
 
+  #forgeBtn{width:100%; min-height:40px; justify-content:flex-start; font-size:15px; margin-top:auto;}
+  #rail.endless #bombBtn{margin-top:0;}
   #bombBtn{position:relative; width:100%; min-height:44px; justify-content:flex-start; font-size:15px; margin-top:auto; overflow:hidden;}
   #bombBtn .bomb-meta{margin-left:auto; font-family:var(--font-num); font-size:13px; letter-spacing:0; display:inline-flex; align-items:center; gap:3px;}
   #bombBtn.armed{background:var(--danger); color:var(--paper); animation:bombpulse .8s ease-in-out infinite;}
@@ -325,6 +344,11 @@
     .tower-card .tname{display:none;}
     .tower-card .tcost{font-size:11px;}
     #selectionPanel{padding:6px; gap:5px;}
+    #selectionPanel.choosing .sel-stats{display:none;}
+    .mode-btn{min-height:32px;}
+    #forgeBtn{min-height:36px;}
+    .wp-chip{min-height:24px; font-size:11px;}
+    .wp-chip canvas{width:22px; height:22px;}
     .sel-actions{gap:6px;}
     .sel-actions .btn{min-height:38px;}
     #bombBtn{min-height:40px;}
@@ -449,6 +473,11 @@
   .guide-row p{margin:0; font-size:13px; line-height:1.45; color:var(--ink-muted);}
   .guide-row .tag{display:inline-block; font-family:var(--font-num); font-size:11px; font-weight:700; background:var(--ink); color:var(--paper); border-radius:3px; padding:1px 5px; margin:0 4px 2px 0;}
   .guide-steps{margin:0 0 10px; padding-left:20px;}
+  .forge-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(14,11,9,.25);}
+  .forge-row h3{margin:0 0 2px; font-family:var(--font-display); font-stretch:75%; font-weight:800; font-size:17px; letter-spacing:.05em; text-transform:uppercase;}
+  .forge-row p{margin:0; font-size:13px; line-height:1.4; color:var(--ink-muted);}
+  .forge-row .tag{font-family:var(--font-num); font-size:11px; font-weight:700; background:var(--ink); color:var(--paper); border-radius:3px; padding:1px 5px; letter-spacing:0;}
+  .forge-row .btn .cost{display:inline-flex; align-items:center; gap:3px; font-family:var(--font-num); letter-spacing:0;}
   .guide-steps li{margin-bottom:5px;}
 </style>
 </head>
@@ -507,6 +536,7 @@
       </div>
       <div id="buildMenu"></div>
       <div id="selectionPanel"></div>
+      <button class="btn" id="forgeBtn" style="display:none;"><i data-ic="anvil"></i>Schmiedewerk</button>
       <button class="btn" id="bombBtn"></button>
       <div class="hint-strip" id="controlHint"></div>
     </aside>
@@ -639,11 +669,24 @@
     <p class="modal-sub">Ab hier geht es ohne festes Ende weiter.</p>
     <p class="modal-text" id="endlessInfoText">
       Wellen, Gegnerzahl und Bosse werden ab jetzt dauerhaft stärker. Irgendwann wird es zu
-      viel, das ist so gewollt. Dafür ist das Turmlimit ab sofort aufgehoben: Du kannst bauen,
-      solange noch freie Felder da sind.
+      viel, das ist so gewollt. Das Turmlimit ist ab sofort aufgehoben. Alle 10 Wellen wechselt
+      die Ära: Schwarm, Flieger, Panzer, Heiler. In der Leiste öffnet jetzt das Schmiedewerk.
+      Dort kaufst du mit Kohle dauerhafte Verbesserungen und neue Leben.
     </p>
     <div class="modal-actions">
       <button class="btn btn-primary" id="endlessInfoOkBtn">Los geht's</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schmiedewerk (nur Endlos-Modus) -->
+<div class="modal-overlay" id="forgeModal">
+  <div class="modal-card">
+    <h2 class="modal-title">Schmiedewerk</h2>
+    <p class="modal-sub">Dauerhafte Verbesserungen für diese Runde. Jeder Kauf macht den nächsten teurer.</p>
+    <div id="forgeBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="closeForgeBtn">Fertig</button>
     </div>
   </div>
 </div>
@@ -774,21 +817,48 @@ function rasterizePath(points){
 }
 function pathToPixels(points){ return points.map(([c,r])=>({x:c*CELL+CELL/2, y:r*CELL+CELL/2})); }
 
-/* Salamander/Gepanzerter (Umbau 073026): erzwingen Mischbestand im Endlos-Modus statt
-   einer Ein-Turmtyp-Monokultur (Darius-Fund: Welle 68, komplette Karte mit Lv.3-Oefen
-   zugepflastert, siehe Feedback 21). immuneTo/weakTo/resistTo werden in
-   applyDamageToEnemy() gegen den dmgType des zufuegenden Turms geprueft. */
+/* GEGNER. Sonderregeln stehen als Daten am Typ, die Logik liest sie in
+   applyDamageToEnemy()/updateEnemies()/pickTarget():
+   - immuneTo/weakTo/resistTo: gegen den dmgType des Turms (Umbau 073026, erzwingt
+     Mischbestand statt Ein-Turmtyp-Monokultur, Darius-Fund Welle 68, Feedback 21).
+   - flying (Overhaul v3): fliegt. Tuerme mit groundOnly (Kanone) und Glutwichte treffen nicht.
+   - shield: Zahl der Treffer, die der Schild komplett schluckt. Jeder Treffer zaehlt
+     gleich, egal wie stark. Viele schwache Schuesse brechen ihn schneller als wenige starke.
+   - heal: heilt andere Gegner im Umkreis.
+   - spawnOnDeath: zerfaellt beim Tod in kleinere Gegner.
+   info ist der Text fuer Anleitung und Wellenvorschau. */
 const ENEMY_TYPES = {
-  slime:  { name:'Schleimling', hp:30,  speed:50,  reward:8,   livesCost:1, emoji:'🟢' },
-  goblin: { name:'Goblin',      hp:55,  speed:65,  reward:14,  livesCost:1, emoji:'👺' },
-  bat:    { name:'Fledermaus',  hp:22,  speed:100, reward:10,  livesCost:1, emoji:'🦇' },
-  ogre:   { name:'Oger',        hp:160, speed:35,  reward:30,  livesCost:2, emoji:'👹' },
-  boss:   { name:'Drache',      hp:500, speed:40,  reward:150, livesCost:5, emoji:'🐉' },
-  salamander: { name:'Salamander', hp:140, speed:42, reward:26, livesCost:2, emoji:'🦎',
-    immuneTo:'feuer', weakTo:'frost', weakMult:1.5 },
-  gepanzert:  { name:'Gepanzerter', hp:120, speed:32, reward:24, livesCost:2, emoji:'🛡️',
-    resistTo:'physisch', resistPct:0.45 }
+  slime:  { name:'Schleimling', hp:30,  speed:50,  reward:8,   livesCost:1,
+    info:'Langsam und schwach. Kommt in Gruppen.' },
+  goblin: { name:'Goblin',      hp:55,  speed:65,  reward:14,  livesCost:1,
+    info:'Schneller und zäher als der Schleimling.' },
+  bat:    { name:'Fledermaus',  hp:24,  speed:100, reward:10,  livesCost:1, flying:true,
+    info:'Fliegt und ist schnell. Kanone und Glutwichte treffen sie nicht.' },
+  ogre:   { name:'Oger',        hp:160, speed:35,  reward:30,  livesCost:2,
+    info:'Viel Leben, langsam. Kostet 2 Leben, wenn er durchkommt.' },
+  boss:   { name:'Drache',      hp:500, speed:40,  reward:150, livesCost:5,
+    info:'Boss. Sehr viel Leben, kostet 5 Leben. Scharfschützen und die Bombe helfen.' },
+  salamander: { name:'Salamander', hp:140, speed:42, reward:26, livesCost:2,
+    immuneTo:'feuer', weakTo:'frost', weakMult:1.5,
+    info:'Immun gegen Feuer (Ofen). Frost trifft ihn anderthalbfach.' },
+  gepanzert:  { name:'Gepanzerter', hp:120, speed:32, reward:24, livesCost:2,
+    resistTo:'physisch', resistPct:0.45,
+    info:'Mindert Schleuderer, Kanone und Scharfschütze um 45 %. Magier, Frost und Ofen treffen voll.' },
+  kaefer: { name:'Kohlenkäfer', hp:10, speed:78, reward:3, livesCost:1,
+    info:'Schwarm aus vielen kleinen Käfern. Flächenschaden räumt sie ab, Einzelschüsse sind zu langsam.' },
+  schamane: { name:'Schamane', hp:75, speed:44, reward:24, livesCost:2,
+    heal:{ every:2, radius:85, pct:0.06, bossPct:0.015 },
+    info:'Heilt alle Gegner in seiner Nähe. Tippe ihn an, dann schießen alle Türme zuerst auf ihn.' },
+  schildwache: { name:'Schildwache', hp:95, speed:40, reward:24, livesCost:2, shield:5,
+    info:'Der Schild schluckt 5 Treffer ganz, egal wie stark. Schnelle Türme brechen ihn, die Bombe sofort.' },
+  brutmutter: { name:'Brutmutter', hp:150, speed:34, reward:20, livesCost:3,
+    spawnOnDeath:{ type:'slimeling', count:4 },
+    info:'Zerplatzt beim Tod in 4 Schleimbrut. Flächenschaden an der Stelle hilft.' },
+  slimeling: { name:'Schleimbrut', hp:16, speed:62, reward:3, livesCost:1,
+    info:'Klein und flink. Schlüpft aus der Brutmutter.' }
 };
+/* Reihenfolge in Wellenvorschau und Anleitung */
+const ENEMY_ORDER = ['slime','goblin','kaefer','bat','ogre','schildwache','salamander','schamane','gepanzert','brutmutter','slimeling','boss'];
 
 /* Bosswellen = alle Vielfachen von bossInterval bis TOTAL_WAVES, aber die LETZTE
    davon wird auf TOTAL_WAVES verschoben statt eine zusaetzliche anzuhaengen - z.B.
@@ -818,35 +888,106 @@ function isBossWave(n, bossInterval, totalWaves){
    ZUSAETZLICH zu hpScale und ausschliesslich auf Gegner vom Typ 'boss'. */
 const bossLateBonusPerWave = 0.10; // +10% zusaetzlich pro Welle ab Welle 10, NUR Bosse
 
+/* WELLEN 1-20 (Overhaul v3): jede Welle hat ein Thema statt "von allem etwas mehr".
+   Ein Eintrag ist [Typ, Anzahl, Abstand in ms, Startversatz in ms]. Die Themen fuehren
+   die Sonderregeln einzeln ein (Schwarm 4, Flieger 6, Schild 9, Feuerimmun 10, Heiler 12,
+   Panzer 13, Brut 14) und mischen sie danach. Jede Welle fragt damit etwas anderes ab:
+   Flaechenschaden, Luftabwehr, schnelle Schuesse, Schadenstyp, Fokus.
+   Der Bossrhythmus bleibt unveraendert (feste Regel): faellt eine Bosswelle auf eine
+   Nummer, ersetzt sie das Rezept dieser Nummer. */
+const WAVE_RECIPES = {
+  1:  [['slime',4,700,0]],
+  2:  [['slime',6,600,0]],
+  3:  [['slime',5,550,0], ['goblin',2,900,2500]],
+  4:  [['goblin',3,800,0], ['kaefer',8,240,3000]],
+  5:  [['slime',7,500,0], ['goblin',4,700,1500]],
+  6:  [['slime',7,500,0], ['bat',4,500,2000]],
+  7:  [['goblin',6,650,0], ['bat',4,500,3000]],
+  8:  [['ogre',2,1600,0], ['goblin',5,600,1200], ['kaefer',8,200,6000]],
+  9:  [['schildwache',2,1700,0], ['kaefer',16,200,2200], ['goblin',4,700,4500]],
+  10: [['salamander',3,1100,0], ['goblin',6,650,800], ['slime',8,450,3000]],
+  11: [['salamander',3,1100,0], ['goblin',6,650,1000], ['bat',6,450,3000]],
+  12: [['ogre',3,1400,0], ['schamane',2,2600,1500], ['goblin',6,650,2000]],
+  13: [['gepanzert',3,1200,0], ['slime',8,450,1000], ['bat',6,450,3500]],
+  14: [['brutmutter',2,2600,0], ['goblin',6,650,1200], ['kaefer',14,200,3500]],
+  15: [['ogre',4,1300,0], ['salamander',3,1100,800], ['schamane',1,0,2500], ['goblin',6,600,3000]],
+  16: [['schildwache',4,1300,0], ['schamane',2,2400,2000], ['goblin',8,550,1500], ['kaefer',10,200,6000]],
+  17: [['gepanzert',4,1200,0], ['salamander',4,1100,600], ['bat',6,450,4000]],
+  18: [['brutmutter',3,2400,0], ['ogre',4,1300,1200], ['kaefer',20,180,4000]],
+  19: [['gepanzert',4,1200,0], ['schildwache',3,1400,700], ['ogre',3,1400,1500], ['salamander',3,1100,3000], ['schamane',2,2500,3500], ['bat',6,450,6000]],
+  20: [['ogre',5,1200,0], ['goblin',8,550,1000]]
+};
+/* AEREN im Endlos-Modus (Endlos-Modus-Plan.md 1.4): je 10 Wellen ein Schwerpunkt, danach
+   von vorn. Jede Aera verlangt einen anderen Umbau der Verteidigung. */
+const ENDLESS_ERAS = [
+  { name:'Schwarm-Ära', hint:'Flächenschaden hilft' },
+  { name:'Flieger-Ära', hint:'Kanone und Ofen treffen Flieger nicht' },
+  { name:'Panzer-Ära', hint:'Magier und schnelle Türme helfen' },
+  { name:'Heiler-Ära', hint:'Schamanen zuerst ausschalten' }
+];
+function endlessEra(n){
+  return n > TOTAL_WAVES ? ENDLESS_ERAS[Math.floor((n - TOTAL_WAVES - 1) / 10) % ENDLESS_ERAS.length] : null;
+}
+
 function generateWave(n, tierCfg){
   const isBoss = isBossWave(n, tierCfg.bossInterval, TOTAL_WAVES);
   const hpScale = 1 + (n-1)*tierCfg.hpScalePerWave;
   const bossHpExtra = (isBoss && n >= 10) ? 1 + (n - 9) * bossLateBonusPerWave : 1;
   const rewardScale = 1 + (n-1)*tierCfg.rewardScalePerWave;
   /* Wellen seit Welle 20 (0 vor/an Welle 20) - laesst die Gegneranzahl im Endlos-Modus
-     langsam weiterwachsen, statt fuer immer auf dem Welle-20-Plateau stehenzubleiben
-     (die Math.min(...)-Deckel unten waren schon ab Welle 8-16 gesaettigt, siehe
-     Endlos-Modus-Plan.md Abschnitt 1.1). Fuer n<=TOTAL_WAVES ist w=0, also unveraendertes
-     Verhalten wie bisher. */
+     langsam weiterwachsen (Endlos-Modus-Plan.md Abschnitt 1.1). */
   const w = Math.max(0, n - TOTAL_WAVES);
   const list = [];
-  const add = (type,count,stagger) => { for(let i=0;i<count;i++) list.push({type, delay:i*stagger}); };
+  const add = (type, count, stagger, start) => { for (let i = 0; i < count; i++) list.push({ type, delay: (start || 0) + i*stagger }); };
+  const era = endlessEra(n);
   if (isBoss){
-    add('boss', 1 + Math.floor(n/10), 3000);
-    add('goblin', 3 + Math.floor(n/5), 700);
+    add('boss', 1 + Math.floor(n/10), 3000, 1200);
+    add('goblin', 3 + Math.floor(n/5), 700, 0);
+    /* Begleitschutz ab Welle 10: Flieger zwingen zu Luftabwehr neben dem Boss-Fokus,
+       ab Welle 15 heilt ein Schamane mit (den Boss nur schwach, siehe heal.bossPct). */
+    if (n >= 10) add('bat', Math.min(8, Math.floor(n/4)), 450, 4000);
+    if (n >= 15) add('schamane', 1 + Math.floor(w/20), 2500, 2500);
+  } else if (!era){
+    (WAVE_RECIPES[n] || WAVE_RECIPES[19]).forEach(([type, count, stagger, start]) => add(type, count, stagger, start));
   } else {
-    add('slime', 3 + Math.min(n,8) + Math.floor(w/6), 550);
-    if (n>=3) add('goblin', Math.min(Math.max(0,n-2),8) + Math.floor(w/5), 750);
-    if (n>=6) add('bat', Math.min(Math.max(0,n-5),6) + Math.floor(w/8), 450);
-    if (n>=8) add('ogre', Math.min(Math.max(0,Math.floor((n-6)/2)),5) + Math.floor(w/10), 1300);
-    /* Nur im Endlos-Bereich (n>TOTAL_WAVES), gestaffelt eingefuehrt statt beide auf
-       einmal - siehe Endlos-Modus-Plan.md Abschnitt 1.4 ("Aeren"). Beide erzwingen
-       Mischbestand: Salamander macht reinen Ofen-Spam wirkungslos, Gepanzerter macht
-       "irgendeine Sorte spammen, Hauptsache nicht Ofen" ebenfalls unattraktiv. */
-    if (n>=TOTAL_WAVES+5) add('salamander', 2 + Math.floor((n-(TOTAL_WAVES+5))/8), 900);
-    if (n>=TOTAL_WAVES+15) add('gepanzert', 2 + Math.floor((n-(TOTAL_WAVES+15))/10), 1000);
+    // Grundstock jeder Endlos-Welle
+    add('goblin', 8 + Math.floor(w/5), 600, 0);
+    add('ogre', 4 + Math.floor(w/8), 1300, 800);
+    /* Salamander ab Welle 25 und Gepanzerte ab Welle 35 bleiben in JEDER Aera dabei -
+       reiner Ofen- oder reiner Physisch-Bestand soll nie wieder reichen. */
+    if (n >= TOTAL_WAVES+5) add('salamander', 2 + Math.floor((n-(TOTAL_WAVES+5))/8), 900, 2000);
+    if (n >= TOTAL_WAVES+15) add('gepanzert', 2 + Math.floor((n-(TOTAL_WAVES+15))/10), 1000, 2500);
+    if (era === ENDLESS_ERAS[0]){
+      add('kaefer', 24 + w, 150, 3000);
+      add('brutmutter', 2 + Math.floor(w/6), 2400, 1500);
+    } else if (era === ENDLESS_ERAS[1]){
+      add('bat', 10 + Math.floor(w/2), 350, 3000);
+      add('kaefer', 10 + Math.floor(w/3), 180, 6000);
+    } else if (era === ENDLESS_ERAS[2]){
+      add('gepanzert', 3 + Math.floor(w/6), 1100, 1000);
+      add('schildwache', 3 + Math.floor(w/6), 1200, 1800);
+    } else {
+      add('schamane', 2 + Math.floor(w/8), 2200, 1500);
+      add('brutmutter', 1 + Math.floor(w/10), 2600, 3000);
+      add('schildwache', 2 + Math.floor(w/10), 1300, 4000);
+    }
   }
-  return { wave:n, isBoss, hpScale, bossHpExtra, rewardScale, enemies:list };
+  /* Die Spawn-Warteschlange wird von vorn abgearbeitet und muss deshalb nach Zeit
+     sortiert sein. Vorher lagen die Typen hintereinander in der Liste und kamen
+     dadurch nacheinander statt gemischt. */
+  list.sort((a, b) => a.delay - b.delay);
+  return { wave:n, isBoss, hpScale, bossHpExtra, rewardScale, enemies:list, era };
+}
+/* Zaehlt die Gegner einer Welle je Typ, in fester Reihenfolge - fuer die Wellenvorschau. */
+function summarizeWave(wave){
+  const counts = {};
+  wave.enemies.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
+  return ENEMY_ORDER.filter(t => counts[t]).map(t => ({ type:t, count:counts[t] }));
+}
+/* Liefert die Welle n der aktuellen Karte, ohne sie zu starten. */
+function waveFor(n){
+  if (state.mapKey === TUTORIAL_MAP_KEY) return generateTutorialWave(n);
+  return generateWave(n, DIFFICULTY_TIERS[MAPS[state.mapKey].tier]);
 }
 
 /* =========================================================
@@ -869,25 +1010,26 @@ function generateTutorialWave(n){
   const isBoss = (n === TUTORIAL_TOTAL_WAVES);
   const hpScale = 1 + (n-1)*0.06; // sehr sanft - die Karte soll lehren, nicht haerten
   const list = [];
-  const add = (type,count,stagger) => { for(let i=0;i<count;i++) list.push({type, delay:i*stagger}); };
+  const add = (type, count, stagger, start) => { for (let i = 0; i < count; i++) list.push({ type, delay: (start || 0) + i*stagger }); };
+  /* Overhaul v3: die Wellen zeigen jetzt auch Flieger, Schwarm, Schild und Heiler -
+     jede Sonderregel einmal, mit passendem Hinweis in TUTORIAL_HINTS. */
   switch(n){
-    case 1: add('slime',5,600); break;                                              // Grundtuerme kennenlernen
-    case 2: add('slime',4,550); add('goblin',3,700); break;                         // erste Kohle, erstes Upgrade
-    case 3: add('bat',6,400); add('slime',3,550); break;                            // schnelle Gegner, Frostturm sinnvoll
-    case 4: add('salamander',2,900); add('slime',4,550); break;                     // erster feuerresistenter Gegner
-    case 5: add('gepanzert',2,1000); add('goblin',4,700); break;                    // erster physisch-resistenter Gegner
-    case 6: add('goblin',6,650); add('ogre',2,1300); break;                         // Kohle-Polster fuer Stufe 4
-    case 7: add('ogre',3,1200); add('salamander',2,900); add('gepanzert',2,1000); break; // Mischbestand gefordert
-    case 8: add('goblin',8,500); add('bat',5,400); add('ogre',2,1200); break;        // groessere Gruppe -> Bombe lohnt sich
-    case 9: add('boss',1,0); add('goblin',5,700); break;                             // Abschluss-Bosswelle
+    case 1: add('slime',5,600); break;                                                   // Grundtuerme kennenlernen
+    case 2: add('slime',4,550); add('goblin',3,700,1500); break;                         // erste Kohle, erstes Upgrade
+    case 3: add('slime',3,550); add('bat',5,450,1500); break;                            // Flieger: Kanone und Ofen treffen nicht
+    case 4: add('salamander',2,900); add('kaefer',10,220,2000); break;                   // feuerimmun + Schwarm
+    case 5: add('gepanzert',2,1000); add('goblin',4,700,1000); break;                    // physisch resistent
+    case 6: add('schildwache',2,1500); add('goblin',6,650,1500); break;                  // Schild: viele Treffer zaehlen
+    case 7: add('ogre',3,1200); add('schamane',1,0,1500); add('goblin',4,700,2500); break; // Heiler: Fokus setzen
+    case 8: add('goblin',8,500); add('bat',5,400,2000); add('ogre',2,1200,3000); break;  // groessere Gruppe -> Bombe lohnt sich
+    case 9: add('boss',1,0,1000); add('goblin',5,700); break;                            // Abschluss-Bosswelle
   }
-  return { wave:n, isBoss, hpScale, bossHpExtra:1, rewardScale:TUTORIAL_REWARD_SCALE, enemies:list };
+  list.sort((a, b) => a.delay - b.delay);
+  return { wave:n, isBoss, hpScale, bossHpExtra:1, rewardScale:TUTORIAL_REWARD_SCALE, enemies:list, era:null };
 }
 /* Liefert die fuer die aktuelle Karte gueltige Wellen-Gesamtzahl - fuer alle 9 Balance-Karten
    unveraendert TOTAL_WAVES (20), nur die Tutorial-Karte hat mit TUTORIAL_TOTAL_WAVES (9) einen
-   eigenen, kuerzeren Wert. Zentral an einer Stelle statt an jeder Vergleichsstelle den
-   Kartenschluessel abzufragen (beginWave/updateWaveCountdown/checkWaveCompletion/triggerVictory/
-   wireEvents-Startknopf). */
+   eigenen, kuerzeren Wert. */
 function mapTotalWaves(mapKey){
   return mapKey === TUTORIAL_MAP_KEY ? TUTORIAL_TOTAL_WAVES : TOTAL_WAVES;
 }
@@ -903,21 +1045,50 @@ const TOWER_ORDER = ['schleuderer','frostturm','ofen','kanone','magier','scharfs
    Welle 68, komplette Karte mit Lv.3-Oefen zugepflastert, 155.773 ungenutzte Kohle, siehe
    Feedback 21). Nur Turm-/Glutwicht-Schaden traegt einen Typ, applyDamageToEnemy() prueft
    ihn gegen etwaige Resistenzen/Schwaechen auf ENEMY_TYPES. Die Bombe bleibt bewusst aussen
-   vor - sie ist schon durch Kosten/Cooldown/Limit gedeckelt, kein Monokultur-Problem. */
+   vor - sie ist schon durch Kosten/Cooldown/Limit gedeckelt, kein Monokultur-Problem.
+
+   UPGRADE-PFADE (Overhaul v3): Beim Schritt von Stufe 3 auf Stufe 4 waehlt man eine von
+   zwei Varianten. levels[3] ist Variante A ("mehr vom Gleichen", die bisherigen Werte),
+   alt4 ist Variante B (ein Spezialeffekt, der eine Gegner-Sonderregel kontert).
+   Beide kosten gleich, beide zaehlen fuer Stufe-4-Limit und Paragon gleich.
+   Sonderfelder: multi (Ziele pro Schuss), novaRadius (Flaechen-Verlangsamung),
+   impSplash (Wicht-Explosion), pierce (ignoriert Panzerung, zerschlaegt Schilde),
+   chainCount (Kettenspruenge), bossMult (Schaden gegen Bosse).
+   groundOnly: der Turm trifft keine fliegenden Gegner. */
 const TOWER_TYPES = {
-  schleuderer: { name:'Schleuderer', emoji:'🏹', cost:50, kind:'shooter', color:'#C9A24B', dmgType:'physisch',
-    levels:[ {dmg:8,range:120,rate:1.4}, {dmg:14,range:120,rate:1.7,upgradeCost:40}, {dmg:22,range:140,rate:2.0,upgradeCost:70}, {dmg:38,range:150,rate:2.3,upgradeCost:260} ] },
-  frostturm: { name:'Frostturm', emoji:'❄️', cost:90, kind:'shooter', slow:true, color:'#4FB3A9', dmgType:'frost',
-    levels:[ {dmg:4,range:110,rate:1.0,slowPct:0.40,slowDur:1.5}, {dmg:6,range:110,rate:1.0,slowPct:0.50,slowDur:1.5,upgradeCost:60}, {dmg:9,range:130,rate:1.0,slowPct:0.60,slowDur:2.0,upgradeCost:100}, {dmg:16,range:140,rate:1.0,slowPct:0.72,slowDur:2.5,upgradeCost:240} ] },
-  ofen: { name:'Ofen', emoji:'🔥', cost:140, kind:'spawner', color:'#E8742A', dmgType:'feuer',
-    levels:[ {childHp:20,interval:3.5,maxActive:2}, {childHp:32,interval:3.0,maxActive:3,upgradeCost:90}, {childHp:48,interval:2.5,maxActive:4,upgradeCost:150}, {childHp:85,interval:2.0,maxActive:6,upgradeCost:320} ] },
-  kanone: { name:'Kanone', emoji:'💣', cost:150, kind:'shooter', splash:true, color:'#8A8F99', dmgType:'physisch',
-    levels:[ {dmg:25,range:130,rate:0.6,splashRadius:50}, {dmg:38,range:130,rate:0.6,splashRadius:60,upgradeCost:100}, {dmg:55,range:130,rate:0.8,splashRadius:75,upgradeCost:160}, {dmg:95,range:130,rate:0.95,splashRadius:95,upgradeCost:340} ] },
-  magier: { name:'Magier', emoji:'🧙', cost:170, kind:'shooter', slow:true, color:'#8E6FCE', dmgType:'arkan',
-    levels:[ {dmg:14,range:140,rate:1.2,slowPct:0.25,slowDur:1.0}, {dmg:20,range:140,rate:1.2,slowPct:0.35,slowDur:1.0,upgradeCost:110}, {dmg:28,range:160,rate:1.2,slowPct:0.45,slowDur:1.0,chain:true,upgradeCost:180}, {dmg:50,range:160,rate:1.2,slowPct:0.55,slowDur:1.0,chain:true,chainRadius:130,upgradeCost:360} ] },
-  scharfschuetze: { name:'Scharfschütze', emoji:'🎯', cost:220, kind:'shooter', targeting:'strongest', color:'#D9455F', dmgType:'physisch',
-    levels:[ {dmg:70,range:220,rate:0.5}, {dmg:100,range:220,rate:0.5,upgradeCost:140}, {dmg:145,range:250,rate:0.65,upgradeCost:220}, {dmg:260,range:280,rate:0.75,upgradeCost:420} ] }
+  schleuderer: { name:'Schleuderer', cost:50, kind:'shooter', color:'#E6B04A', dmgType:'physisch',
+    levels:[ {dmg:8,range:120,rate:1.4}, {dmg:14,range:120,rate:1.7,upgradeCost:40}, {dmg:22,range:140,rate:2.0,upgradeCost:70},
+      {dmg:38,range:150,rate:2.3,upgradeCost:260, title:'Scharfschleuder', desc:'Mehr Schaden pro Schuss.'} ],
+    alt4:{dmg:24,range:150,rate:2.3,multi:2,upgradeCost:260, title:'Zwillingsschleuder', desc:'Trifft 2 Ziele zugleich. Bricht Schilde schnell.'} },
+  frostturm: { name:'Frostturm', cost:90, kind:'shooter', slow:true, color:'#62D8CF', dmgType:'frost',
+    levels:[ {dmg:4,range:110,rate:1.0,slowPct:0.40,slowDur:1.5}, {dmg:6,range:110,rate:1.0,slowPct:0.50,slowDur:1.5,upgradeCost:60}, {dmg:9,range:130,rate:1.0,slowPct:0.60,slowDur:2.0,upgradeCost:100},
+      {dmg:16,range:140,rate:1.0,slowPct:0.72,slowDur:2.5,upgradeCost:240, title:'Tiefkühler', desc:'Bremst ein Ziel um 72 %.'} ],
+    alt4:{dmg:10,range:140,rate:1.0,slowPct:0.50,slowDur:2.0,novaRadius:75,upgradeCost:240, title:'Frostnova', desc:'Bremst alle Gegner rund um das Ziel um 50 %.'} },
+  ofen: { name:'Ofen', cost:140, kind:'spawner', color:'#F26A1B', dmgType:'feuer', groundOnly:true,
+    levels:[ {childHp:20,interval:3.5,maxActive:2}, {childHp:32,interval:3.0,maxActive:3,upgradeCost:90}, {childHp:48,interval:2.5,maxActive:4,upgradeCost:150},
+      {childHp:85,interval:2.0,maxActive:6,upgradeCost:320, title:'Hochofen', desc:'Starke Wichte, 6 gleichzeitig.'} ],
+    alt4:{childHp:52,interval:2.0,maxActive:5,impSplash:50,upgradeCost:320, title:'Sprengofen', desc:'Wichte explodieren und treffen alle Gegner im Umkreis.'} },
+  kanone: { name:'Kanone', cost:150, kind:'shooter', splash:true, color:'#8C97A8', dmgType:'physisch', groundOnly:true,
+    levels:[ {dmg:25,range:130,rate:0.6,splashRadius:50}, {dmg:38,range:130,rate:0.6,splashRadius:60,upgradeCost:100}, {dmg:55,range:130,rate:0.8,splashRadius:75,upgradeCost:160},
+      {dmg:95,range:130,rate:0.95,splashRadius:95,upgradeCost:340, title:'Belagerungskanone', desc:'Größte Fläche, höchster Schaden.'} ],
+    alt4:{dmg:75,range:140,rate:0.95,splashRadius:60,pierce:true,upgradeCost:340, title:'Panzerbrecher', desc:'Ignoriert Panzerung und zerschlägt Schilde.'} },
+  magier: { name:'Magier', cost:170, kind:'shooter', slow:true, color:'#B79BFF', dmgType:'arkan',
+    levels:[ {dmg:14,range:140,rate:1.2,slowPct:0.25,slowDur:1.0}, {dmg:20,range:140,rate:1.2,slowPct:0.35,slowDur:1.0,upgradeCost:110}, {dmg:28,range:160,rate:1.2,slowPct:0.45,slowDur:1.0,chain:true,upgradeCost:180},
+      {dmg:50,range:160,rate:1.2,slowPct:0.55,slowDur:1.0,chain:true,chainRadius:130,upgradeCost:360, title:'Erzmagier', desc:'Hoher Schaden, ein Kettensprung.'} ],
+    alt4:{dmg:34,range:160,rate:1.2,slowPct:0.45,slowDur:1.0,chain:true,chainRadius:120,chainCount:4,upgradeCost:360, title:'Kettenblitz', desc:'Der Blitz springt auf bis zu 4 weitere Gegner.'} },
+  scharfschuetze: { name:'Scharfschütze', cost:220, kind:'shooter', targeting:'strong', color:'#E0485E', dmgType:'physisch',
+    levels:[ {dmg:70,range:220,rate:0.5}, {dmg:100,range:220,rate:0.5,upgradeCost:140}, {dmg:145,range:250,rate:0.65,upgradeCost:220},
+      {dmg:260,range:280,rate:0.75,upgradeCost:420, title:'Meisterschütze', desc:'Höchster Schaden pro Schuss.'} ],
+    alt4:{dmg:180,range:280,rate:0.75,bossMult:2.2,upgradeCost:420, title:'Drachentöter', desc:'Macht 2,2-fachen Schaden an Bossen.'} }
 };
+/* ZIELMODUS pro Turm (Overhaul v3). Bisher hatte nur der Scharfschuetze "staerkster",
+   alle anderen "vorderster". Jetzt waehlbar im Turm-Panel. */
+const TARGET_MODES = [
+  { id:'first',  label:'Vorn',    title:'Der Gegner, der am weitesten gekommen ist' },
+  { id:'strong', label:'Stark',   title:'Der Gegner mit dem meisten Leben' },
+  { id:'weak',   label:'Schwach', title:'Der Gegner mit dem wenigsten Leben' },
+  { id:'near',   label:'Nah',     title:'Der Gegner, der dem Turm am nächsten ist' }
+];
 /* Hoechstens so viele Tuerme duerfen gleichzeitig auf Stufe 4 stehen - global,
    unabhaengig von Karte, Schwierigkeitsgrad und maxTowers. Bewusst eine einzige
    Zahl statt einer Formel: leicht zu kommunizieren ("nie mehr als 3 Elite-Tuerme")
@@ -946,7 +1117,10 @@ const MAX_PARAGONS_PER_TYPE = 1;
 const PARAGON_STAT_MULT = { dmg:5, rate:1.3, range:1.3, childHp:5, maxActive:2, splashRadius:1.6, chainRadius:1.4 };
 
 function towerLevelStats(tw, def){
-  return tw.level === PARAGON_LEVEL_INDEX ? tw.paragonStats : def.levels[tw.level];
+  if (tw.level === PARAGON_LEVEL_INDEX) return tw.paragonStats;
+  /* Stufe 4 hat zwei Varianten (Upgrade-Pfade, siehe TOWER_TYPES): A = levels[3], B = alt4 */
+  if (tw.level === LEVEL4_INDEX && tw.variant === 'b') return def.alt4;
+  return def.levels[tw.level];
 }
 function paragonCountForType(type){
   return state.towers.filter(t => t.type === type && t.level === PARAGON_LEVEL_INDEX).length;
@@ -981,10 +1155,10 @@ function fuseParagon(id){
   state.kohle -= cost;
   const otherIds = new Set(others.map(o => o.id));
   state.towers = state.towers.filter(t => !otherIds.has(t.id)); // Zellen werden dadurch wieder frei
-  const base = def.levels[LEVEL4_INDEX];
+  const base = towerLevelStats(tw, def); // Variante des gewaehlten Turms bestimmt den Paragon
   const stats = {};
   for (const key of Object.keys(base)){
-    if (key === 'upgradeCost') continue;
+    if (key === 'upgradeCost' || key === 'title' || key === 'desc') continue;
     const mult = PARAGON_STAT_MULT[key];
     stats[key] = mult ? Math.round(base[key]*mult*10)/10 : base[key];
   }
@@ -1401,7 +1575,8 @@ const Sound = (() => {
        der Einmal-Effekt hoerbar etwas anderes ist als ein Turmbau. */
     bomb(){ beep(180, 0.35, 'sawtooth', 0.09, 40); beep(90, 0.45, 'square', 0.06, 30); },
     lose(){ beep(200, 0.5, 'sawtooth', 0.07, 60); },
-    win(){ beep(523, 0.18, 'sine', 0.06, 784); }
+    win(){ beep(523, 0.18, 'sine', 0.06, 784); },
+    shieldBreak(){ beep(1400, 0.08, 'square', 0.04, 500); }
   };
 })();
 
@@ -1445,6 +1620,8 @@ const state = {
   pointerPos: null,          // exakte Zeigerposition in logischen Koordinaten (Bomben-Vorschau)
   dragging: false,           // Touch-Geste laeuft: Finger liegt auf dem Feld (Druecken-Ziehen-Loslassen)
   dragPointerId: null,
+  focusId: null,             // markierter Gegner (Antippen): alle Tuerme in Reichweite schiessen zuerst auf ihn
+  forge: { dmg:0, rate:0, repair:0 }, // Kaeufe im Schmiedewerk (Endlos-Modus), siehe FORGE_UPGRADES
   bombArmed: false,          // Bombe gekauft-und-scharf: naechster Canvas-Klick zuendet
   bombsUsed: 0,
   bombCooldownUntil: 0,      // state.playTime, bis zu dem die naechste Bombe gesperrt ist
@@ -1465,6 +1642,8 @@ function resetRunState(){
   state.kohle = Math.round(STARTING_KOHLE * tierCfg.kohleMult);
   state.lives = Math.round(STARTING_LIVES * tierCfg.livesMult);
   state.maxLives = state.lives;
+  state.focusId = null;
+  state.forge = { dmg:0, rate:0, repair:0 };
   state.pointerPos = null; state.dragging = false; state.hoverCell = null;
   state.waveNumber = 0;
   state.waveActive = false;
@@ -1982,7 +2161,7 @@ let waveBannerTimeout = null;
 function showWaveBanner(wave){
   if (waveBannerTimeout) clearTimeout(waveBannerTimeout);
   dom.waveBanner.innerHTML = 'WELLE ' + wave.wave +
-    '<span class="sub">' + (wave.isBoss ? 'Bosswelle. Der Drache kommt.' : MAPS[state.mapKey].name) + '</span>';
+    '<span class="sub">' + (wave.isBoss ? 'Bosswelle. Der Drache kommt.' : (wave.era ? wave.era.name + ' · ' + wave.era.hint : MAPS[state.mapKey].name)) + '</span>';
   dom.waveBanner.classList.toggle('boss', !!wave.isBoss);
   dom.waveBanner.classList.add('show');
   waveBannerTimeout = setTimeout(() => dom.waveBanner.classList.remove('show'), 2200);
@@ -2008,22 +2187,30 @@ function updateWaveSpawning(dt){
   }
 }
 
-function spawnEnemy(type){
+/* parent/idx (Overhaul v3): Brut einer Brutmutter. Sie startet an der Stelle der Mutter
+   und laeuft von dort weiter, jeweils kurz versetzt (holdUntil). */
+function spawnEnemy(type, parent, idx){
   if (type === 'boss') atmoShake(5);
   const base = ENEMY_TYPES[type];
   const wave = state.currentWaveData;
   const start = state.waypoints[0];
-  /* bossHpExtra greift nur fuer Bosse (siehe generateWave) - die begleitenden Goblins
+  /* bossHpExtra greift nur fuer Bosse (siehe generateWave) - die Begleiter
      einer Bosswelle skalieren weiter nur ueber hpScale. */
   const bossExtra = (type === 'boss') ? (wave.bossHpExtra || 1) : 1;
   const scaledHp = base.hp * wave.hpScale * bossExtra;
   state.enemies.push({
-    id: state.nextEntityId++, type, name: base.name, emoji: base.emoji,
+    id: state.nextEntityId++, type, name: base.name,
     hp: scaledHp, maxHp: scaledHp,
     speed: base.speed, reward: Math.round(base.reward * wave.rewardScale),
     livesCost: base.livesCost,
-    wpIndex: 0, x: start.x, y: start.y, progress: 0,
-    slowUntil: 0, slowPct: 0, hitFlash: 0, resistFlash: 0, lastResistText: -9, angle: 0
+    wpIndex: parent ? parent.wpIndex : 0,
+    x: parent ? parent.x : start.x, y: parent ? parent.y : start.y,
+    progress: parent ? parent.progress : 0,
+    holdUntil: parent ? state.playTime + idx * 0.22 : 0,
+    shield: base.shield || 0,
+    healTimer: base.heal ? base.heal.every : 0, healFlash: 0,
+    slowUntil: 0, slowPct: 0, hitFlash: 0, resistFlash: 0, lastResistText: -9,
+    angle: parent ? parent.angle : 0
   });
 }
 
@@ -2239,51 +2426,69 @@ function confirmEndlessInfo(){
    Textblock am Anfang aufgezaehlt zu werden. Neue Hinweise = neuer Eintrag in dieser Liste,
    kein neuer Aufrufort noetig. */
 const TUTORIAL_HINTS = [
-  { id:'welcome', title:'🎓 Willkommen in der Schmiedeschule!',
+  { id:'welcome', title:'Willkommen in der Schmiedeschule',
     cond: s => s.waveNumber === 0 && !s.waveActive,
-    text:'Baue Türme entlang des Weges, um die Gegner zu stoppen, bevor sie den Stollen erreichen. '+
-      'Wähle unten eine Turmkarte (Klick oder Tasten 1–6) und klicke dann ein freies Feld neben dem '+
-      'Weg an. Jeder Turm kostet 🪨 Kohle – die verdienst du durch besiegte Gegner. Wenn du bereit '+
-      'bist, startest du die erste Welle unten mit „▶ Welle starten".' },
-  { id:'kohle', title:'🪨 Kohle verdient',
+    text:'Baue Türme neben dem Weg. Sie stoppen die Gegner, bevor sie die Schmiede am Ende erreichen. '+
+      'Wähle in der Leiste eine Turmkarte und setze sie auf ein helles Feld. Jeder Turm kostet Kohle. '+
+      'Kohle bekommst du für besiegte Gegner. Wenn du bereit bist, drück „Start“.' },
+  { id:'vorschau', title:'Die Wellenvorschau',
+    cond: s => s.waveNumber === 1 && !s.waveActive,
+    text:'Über dem Start-Knopf siehst du, welche Gegner in der nächsten Welle kommen und wie viele. '+
+      'Plane damit deinen nächsten Turm. Tippe ein Gegner-Symbol an, dann öffnet sich die Anleitung mit seiner Beschreibung.' },
+  { id:'kohle', title:'Kohle verdient',
     cond: s => s.totalKohleEarned >= 15,
-    text:'Besiegte Gegner lassen Kohle fallen (du siehst sie aus einem kleinen Rucksack fallen und '+
-      'zur Anzeige oben links fliegen). Damit kaufst du weitere Türme oder rüstest bestehende auf.' },
-  { id:'upgrade', title:'⬆ Türme aufrüsten',
+    text:'Besiegte Gegner lassen Kohle fallen. Sie fliegt zur Anzeige oben links. '+
+      'Damit kaufst du weitere Türme oder rüstest stehende Türme auf.' },
+  { id:'upgrade', title:'Türme aufrüsten',
     cond: s => s.kohle >= 40 && s.towers.some(t => t.level === 0),
-    text:'Klicke einen platzierten Turm an – im Auswahlfeld siehst du seine Werte und einen '+
-      '„Upgrade"-Knopf. Jeder Turm lässt sich bis Stufe 4 aufrüsten: mehr Schaden, Reichweite und '+
-      'Feuerrate, aber steigende Kosten. Probier es an einem deiner Türme aus!' },
-  { id:'salamander', title:'🦎 Salamander – feuerresistent!',
+    text:'Tippe einen stehenden Turm an. In der Leiste erscheinen seine Werte, der Zielmodus und der Knopf für die nächste Stufe. '+
+      'Jeder Turm geht bis Stufe 4. Probier es an einem deiner Türme aus.' },
+  { id:'flieger', title:'Fledermäuse fliegen',
+    cond: s => s.enemies.some(e => e.type === 'bat'),
+    text:'Kanone und Ofen treffen fliegende Gegner nicht. Schleuderer, Frostturm, Magier und Scharfschütze treffen sie. '+
+      'Stell mindestens einen davon an den Weg.' },
+  { id:'salamander', title:'Salamander: immun gegen Feuer',
     cond: s => s.enemies.some(e => e.type === 'salamander'),
-    text:'Dieser Gegner ignoriert Feuerschaden komplett – dein Ofen 🔥 richtet gegen ihn nichts aus. '+
-      'Frost ❄️ trifft ihn sogar besonders hart (Schwäche). Ab jetzt lohnt sich ein Mix aus '+
-      'Turmtypen statt einer einzigen Sorte.' },
-  { id:'gepanzert', title:'🛡️ Gepanzerter – physisch resistent!',
+    text:'Der Ofen richtet gegen ihn nichts aus, die Glutwichte lassen ihn deshalb aus. '+
+      'Frost trifft ihn anderthalbfach. Ein Mix aus Turmtypen ist stärker als eine einzige Sorte.' },
+  { id:'schwarm', title:'Kohlenkäfer: der Schwarm',
+    cond: s => s.enemies.some(e => e.type === 'kaefer'),
+    text:'Viele kleine, schnelle Käfer. Ein einzelner Schuss tötet immer nur einen. '+
+      'Flächenschaden räumt sie ab: Kanone, Ofen oder die Kette des Magiers.' },
+  { id:'gepanzert', title:'Gepanzerter: physisch resistent',
     cond: s => s.enemies.some(e => e.type === 'gepanzert'),
-    text:'Dieser Gegner mindert physischen Schaden (Schleuderer, Kanone, Scharfschütze) deutlich. '+
-      'Der Magier 🧙 (arkaner Schaden) trifft ihn dagegen ungemindert – auch hier gilt: Mischbestand '+
-      'statt Monokultur.' },
-  { id:'level4', title:'👑 Stufe 4 erreicht',
+    text:'Er mindert den Schaden von Schleuderer, Kanone und Scharfschütze um 45 %. '+
+      'Magier, Frostturm und Ofen treffen ihn voll.' },
+  { id:'schild', title:'Schildwache: der Schild schluckt Treffer',
+    cond: s => s.enemies.some(e => e.type === 'schildwache'),
+    text:'Der Schild schluckt 5 Treffer ganz, egal wie stark sie sind. Ein Scharfschütze verschwendet daran seine Schüsse. '+
+      'Schnelle Türme wie der Schleuderer brechen den Schild schnell. Die Bombe zerschlägt ihn sofort.' },
+  { id:'heiler', title:'Schamane: heilt die anderen',
+    cond: s => s.enemies.some(e => e.type === 'schamane'),
+    text:'Er heilt alle Gegner in seiner Nähe. Tippe ihn auf dem Spielfeld an. '+
+      'Er bekommt dann eine Markierung, und alle Türme in Reichweite schießen zuerst auf ihn. Das geht mit jedem Gegner.' },
+  { id:'pfad', title:'Stufe 4: zwei Wege',
+    cond: s => s.towers.some(t => t.level === LEVEL4_INDEX - 1),
+    text:'Dieser Turm steht auf Stufe 3. Für Stufe 4 wählst du eine von zwei Varianten: '+
+      'Die erste macht ihn in seiner Aufgabe stärker, die zweite gibt ihm einen besonderen Effekt. '+
+      'Die Wahl gilt für diesen Turm und lässt sich nur durch Verkaufen ändern.' },
+  { id:'level4', title:'Stufe 4 erreicht',
     cond: s => s.towers.some(t => t.level === LEVEL4_INDEX),
-    text:'Dieser Turm steht jetzt auf der Höchststufe des normalen Upgrade-Pfads. Baue zwei weitere '+
-      'Türme DESSELBEN Typs ebenfalls auf Stufe 4 – dann kannst du alle drei zu einem einzigen, viel '+
-      'stärkeren 💎 Paragon verschmelzen.' },
-  { id:'fusion', title:'💎 Paragon-Fusion bereit!',
+    text:'Höchstens '+MAX_LEVEL4_TOWERS+' Türme dürfen gleichzeitig auf Stufe 4 stehen. '+
+      'Bring zwei weitere Türme desselben Typs auf Stufe 4. Dann kannst du alle drei zu einem Paragon verschmelzen.' },
+  { id:'fusion', title:'Paragon-Fusion bereit',
     cond: s => s.towers.some(t => canFuseParagon(t)),
-    text:'Du hast drei gleichtypige Stufe-4-Türme! Wähle einen davon an und klicke „Zu Paragon '+
-      'verschmelzen" – die beiden anderen werden dabei verbraucht (ihre Bauplätze werden wieder '+
-      'frei), der ausgewählte Turm wird zum deutlich stärkeren Paragon.' },
-  { id:'bombe', title:'💣 Die Bombe',
+    text:'Du hast drei Türme desselben Typs auf Stufe 4. Wähle einen davon und drück „Paragon“. '+
+      'Die beiden anderen werden verbraucht, ihre Bauplätze werden frei. Der gewählte Turm wird viel stärker.' },
+  { id:'bombe', title:'Die Bombe',
     cond: s => s.kohle >= BOMB_COST && s.waveNumber >= 2,
-    text:'Oben in der Kopfzeile kannst du eine Flächenschaden-Bombe kaufen: Knopf klicken, dann ein '+
-      'Ziel auf der Karte anklicken. Stark gegen große, dichte Gruppen oder eine Bosswelle – aber '+
-      'begrenzt (max. '+BOMB_MAX_PER_GAME+' pro Spiel) und mit kurzer Abklingzeit.' },
-  { id:'boss', title:'🐉 Bosswelle!',
+    text:'Unten in der Leiste liegt die Bombe. Drück den Knopf und wähle dann das Ziel auf dem Spielfeld. '+
+      'Sie trifft alles im Kreis, auch Flieger, und zerschlägt Schilde. '+
+      'Du hast '+BOMB_MAX_PER_GAME+' Bomben pro Spiel, nach jeder Bombe lädt sie '+BOMB_COOLDOWN+' Sekunden.' },
+  { id:'boss', title:'Bosswelle',
     cond: s => !!(s.currentWaveData && s.currentWaveData.isBoss && s.waveActive),
-    text:'Ein Drache naht – viel Leben, hoher Kohle-Lohn. Konzentriere deinen stärksten Turm (oder '+
-      'deinen Paragon, falls schon verschmolzen) auf ihn, und zögere nicht, jetzt die Bombe '+
-      'einzusetzen, falls es eng wird.' }
+    text:'Ein Drache kommt. Er hat sehr viel Leben und kostet 5 Leben, wenn er durchkommt. '+
+      'Stell einen Scharfschützen auf „Stark“ oder tippe den Drachen an. Wenn es eng wird, nimm die Bombe.' }
 ];
 let tutorialAutoPaused = false;
 function checkTutorialHints(){
@@ -2325,8 +2530,27 @@ function closeTutorialHint(){
 /* =========================================================
    SCHADEN, TÜRME, PROJEKTILE, GLUTWICHTE
    ========================================================= */
-function applyDamageToEnemy(e, amount, source, dmgType){
+/* opts (Overhaul v3): { pierce, bossMult } - Sondereffekte der Stufe-4-Varianten. */
+function applyDamageToEnemy(e, amount, source, dmgType, opts){
   if (e.hp <= 0) return;
+  const pierce = !!(opts && opts.pierce);
+  /* Schild (Schildwache): schluckt ganze Treffer, unabhaengig von der Staerke. Bombe und
+     Panzerbrecher zerschlagen ihn sofort und treffen danach normal. */
+  if (e.shield > 0){
+    if (source === 'bomb' || pierce){
+      e.shield = 0;
+      spawnShieldBreak(e);
+    } else {
+      e.shield--;
+      e.resistFlash = 0.25;
+      if (e.shield === 0) spawnShieldBreak(e);
+      else if (state.playTime - (e.lastResistText || -9) > 0.7){
+        e.lastResistText = state.playTime;
+        spawnFloatText(e.x, e.y - 18, 'Schild ' + e.shield, '#BFEFFF');
+      }
+      return;
+    }
+  }
   /* Schadenstyp-Resistenzen (Umbau 073026, siehe TOWER_TYPES-Kommentar): nur wenn der
      Aufrufer einen dmgType mitgibt (Turm-/Glutwicht-Schaden), sonst unveraendert - die
      Bombe (kein dmgType) trifft also immer voll, unabhaengig von Resistenzen. */
@@ -2335,7 +2559,7 @@ function applyDamageToEnemy(e, amount, source, dmgType){
     const res = ENEMY_TYPES[e.type];
     if (res.immuneTo === dmgType) dealt = 0;
     else if (res.weakTo === dmgType) dealt = amount * (res.weakMult || 1.5);
-    else if (res.resistTo === dmgType) dealt = amount * (1 - (res.resistPct || 0));
+    else if (res.resistTo === dmgType && !pierce) dealt = amount * (1 - (res.resistPct || 0));
     /* Sichtbar machen, warum ein Treffer wenig/nichts bewirkt - sonst muss der
        Spieler es aus ausbleibendem Fortschritt erschliessen (Feedback 21.4).
        Nur bei Minderung, nicht beim frost-Bonus gegen Salamander (dealt > amount). */
@@ -2344,11 +2568,12 @@ function applyDamageToEnemy(e, amount, source, dmgType){
       if (state.playTime - (e.lastResistText || -9) > 0.7){
         e.lastResistText = state.playTime;
         spawnFloatText(e.x, e.y - 16,
-          dealt === 0 ? 'immun' : '−' + Math.round((1 - dealt / amount) * 100) + '%',
-          '#8FD3E8');
+          dealt === 0 ? 'immun' : '−' + Math.round((1 - dealt / amount) * 100) + ' %',
+          '#BFEFFF');
       }
     }
   }
+  if (opts && opts.bossMult && e.type === 'boss') dealt *= opts.bossMult;
   e.hp -= dealt;
   if (dealt > 0) e.hitFlash = 0.12;
   if (e.hp <= 0){
@@ -2367,17 +2592,56 @@ function applyDamageToEnemy(e, amount, source, dmgType){
       Sound.coin();
     }
     state.totalKills++;
+    if (state.focusId === e.id) state.focusId = null;
     spawnKillEffect(e, paidAmount, source === 'bomb');
+    /* Brutmutter: zerfaellt in kleinere Gegner, die an derselben Stelle weiterlaufen. */
+    const brood = ENEMY_TYPES[e.type].spawnOnDeath;
+    if (brood){
+      for (let i = 0; i < brood.count; i++) spawnEnemy(brood.type, e, i);
+      state.particles.push({ type:'puff', x:e.x, y:e.y, r0:10, r1:44, color:'#B9D94A', life:0.4, maxLife:0.4 });
+    }
   }
+}
+function spawnShieldBreak(e){
+  spawnFloatText(e.x, e.y - 18, 'Schild bricht', '#BFEFFF');
+  state.particles.push({ type:'puff', x:e.x, y:e.y, r0:8, r1:30, color:'#BFEFFF', life:0.3, maxLife:0.3 });
+  Sound.shieldBreak();
+}
+/* Verlangsamung: die staerkere Wirkung gewinnt, solange die alte noch laeuft. */
+function applySlow(e, pct, dur){
+  const active = state.playTime < e.slowUntil;
+  e.slowPct = active ? Math.max(e.slowPct || 0, pct) : pct;
+  e.slowUntil = Math.max(e.slowUntil, state.playTime + dur);
 }
 
 /* =========================================================
-   GEGNER-BEWEGUNG (fehlte bisher komplett - Kernursache des Absturzes)
+   GEGNER-BEWEGUNG UND GEGNER-FAEHIGKEITEN
    ========================================================= */
 function updateEnemies(dt){
   const now = state.playTime;
   for (const e of state.enemies){
     if (e.hp <= 0) continue; // stirbt gerade, wird unten aussortiert
+    if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
+    if (e.resistFlash > 0) e.resistFlash = Math.max(0, e.resistFlash - dt);
+    if (e.healFlash > 0) e.healFlash = Math.max(0, e.healFlash - dt);
+    /* Heiler (Schamane): heilt alle anderen Gegner im Umkreis, nie sich selbst. Wer ihn
+       zuerst toetet, spart Schaden an allen anderen. */
+    const heal = ENEMY_TYPES[e.type].heal;
+    if (heal){
+      e.healTimer -= dt;
+      if (e.healTimer <= 0){
+        e.healTimer = heal.every;
+        let any = false;
+        for (const o of state.enemies){
+          if (o === e || o.hp <= 0 || o.hp >= o.maxHp || dist(e, o) > heal.radius) continue;
+          o.hp = Math.min(o.maxHp, o.hp + o.maxHp * (o.type === 'boss' ? heal.bossPct : heal.pct));
+          o.healFlash = 0.5;
+          any = true;
+        }
+        if (any) state.particles.push({ type:'puff', x:e.x, y:e.y, r0:12, r1:heal.radius, color:'#8CFFC0', life:0.5, maxLife:0.5 });
+      }
+    }
+    if (now < (e.holdUntil || 0)) continue; // frisch geschluepfte Brut wartet kurz, damit sie nicht uebereinander laeuft
     const slowed = now < e.slowUntil;
     const speed = e.speed * (slowed ? (1 - e.slowPct) : 1);
     let remaining = speed * dt;
@@ -2398,8 +2662,6 @@ function updateEnemies(dt){
         remaining = 0;
       }
     }
-    if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
-    if (e.resistFlash > 0) e.resistFlash = Math.max(0, e.resistFlash - dt);
   }
 
   const last = state.waypoints[state.waypoints.length - 1];
@@ -2409,9 +2671,10 @@ function updateEnemies(dt){
     if (e.wpIndex >= state.waypoints.length - 1 && dist(e, last) < 1){
       state.lives = Math.max(0, state.lives - e.livesCost); // nie unter 0 clampen (Feedback 27)
       spawnFloatText(e.x, e.y - 10, '−' + e.livesCost + ' Leben', '#FF7462', 17);
-      buzz(25);
+      if (state.focusId === e.id) state.focusId = null;
       Sound.leak();
       atmoShake(3);
+      buzz(25);
       continue;
     }
     survivors.push(e);
@@ -2419,44 +2682,76 @@ function updateEnemies(dt){
   state.enemies = survivors;
 }
 
+/* Kann dieser Turmtyp diesen Gegner ueberhaupt treffen? */
+function canHit(def, e){
+  return !(def.groundOnly && ENEMY_TYPES[e.type].flying);
+}
+/* Zielwahl nach Zielmodus des Turms. Der markierte Gegner (state.focusId, per Antippen
+   gesetzt) hat immer Vorrang, wenn er in Reichweite und treffbar ist. */
+function pickTargets(tw, def, lvl, count){
+  const mode = tw.targetMode || 'first';
+  const cands = [];
+  for (const e of state.enemies){
+    if (e.hp <= 0 || !canHit(def, e)) continue;
+    const d = dist(tw, e);
+    if (d > lvl.range) continue;
+    let v;
+    if (e.id === state.focusId) v = Infinity;
+    else if (mode === 'strong') v = e.maxHp * 1e5 + e.progress;
+    else if (mode === 'weak') v = -e.hp * 1e5 + e.progress;
+    else if (mode === 'near') v = -d;
+    else v = e.progress;
+    cands.push({ e, v });
+  }
+  if (!cands.length) return cands;
+  if (count === 1){
+    let best = cands[0];
+    for (const c of cands) if (c.v > best.v) best = c;
+    return [best.e];
+  }
+  cands.sort((a, b) => b.v - a.v);
+  return cands.slice(0, count).map(c => c.e);
+}
+
 function updateTowers(dt){
+  const dmgMult = forgeMult('dmg'), rateMult = forgeMult('rate');
+  /* Aktive Wichte je Ofen einmal zaehlen statt pro Ofen die ganze Liste zu filtern -
+     bei 100+ Oefen im Endlos-Modus war das der teuerste Teil des Schritts. */
+  const impCount = {};
+  for (const imp of state.imps) impCount[imp.ownerId] = (impCount[imp.ownerId] || 0) + 1;
+  let groundAlive = null;
   for (const tw of state.towers){
     const def = TOWER_TYPES[tw.type];
     const lvl = towerLevelStats(tw, def);
     if (tw.recoil > 0) tw.recoil = Math.max(0, tw.recoil - dt*4);
     if (def.kind === 'spawner'){
       tw.spawnTimer -= dt;
-      const activeCount = state.imps.filter(i => i.ownerId === tw.id).length;
-      if (tw.spawnTimer <= 0 && activeCount < lvl.maxActive && state.enemies.some(e => e.hp > 0)){
-        state.imps.push({ id: state.nextEntityId++, ownerId: tw.id, x: tw.x, y: tw.y, hp: lvl.childHp, maxHp: lvl.childHp, targetId: null });
-        tw.spawnTimer = lvl.interval;
-        tw.recoil = 1;
+      if (tw.spawnTimer <= 0 && (impCount[tw.id] || 0) < lvl.maxActive){
+        if (groundAlive === null) groundAlive = state.enemies.some(e => e.hp > 0 && impCanTarget(e));
+        if (groundAlive){
+          const hp = Math.round(lvl.childHp * dmgMult);
+          state.imps.push({ id: state.nextEntityId++, ownerId: tw.id, x: tw.x, y: tw.y, hp, maxHp: hp, targetId: null, splash: lvl.impSplash || 0 });
+          impCount[tw.id] = (impCount[tw.id] || 0) + 1;
+          tw.spawnTimer = lvl.interval / rateMult;
+          tw.recoil = 1;
+        }
       }
       continue;
     }
     tw.cooldown -= dt;
     if (tw.cooldown > 0) continue;
-    const inRange = state.enemies.filter(e => e.hp > 0 && dist(tw, e) <= lvl.range);
-    if (!inRange.length) continue;
-    let target;
-    if (def.targeting === 'strongest'){
-      target = inRange.reduce((a,b) => b.maxHp > a.maxHp ? b : a);
-    } else {
-      target = inRange.reduce((a,b) => b.progress > a.progress ? b : a);
+    const targets = pickTargets(tw, def, lvl, lvl.multi || 1);
+    if (!targets.length) continue;
+    for (const target of targets){
+      state.projectiles.push({
+        x: tw.x, y: tw.y, targetId: target.id, speed: 420,
+        dmg: lvl.dmg * dmgMult, lvl, groundOnly: !!def.groundOnly,
+        color: def.color, kind: tw.type, dmgType: def.dmgType, angle: 0, trail: []
+      });
     }
-    state.projectiles.push({
-      x: tw.x, y: tw.y, targetId: target.id, speed: 420,
-      dmg: lvl.dmg, splashRadius: lvl.splashRadius || 0,
-      slowPct: lvl.slowPct, slowDur: lvl.slowDur, chain: !!lvl.chain,
-      /* Ketten-Radius war bis 072826 hart mit 80 in updateProjectiles verdrahtet
-         (Playtest-Befund 2.4 "Magier-Kette zu klein"). Jetzt pro Stufe konfigurierbar;
-         Stufe 1-3 haben kein chainRadius und behalten damit die alten 80. */
-      chainRadius: lvl.chainRadius || 80,
-      color: def.color, kind: tw.type, dmgType: def.dmgType, angle: 0, trail: []
-    });
-    tw.cooldown = 1 / lvl.rate;
+    tw.cooldown = 1 / (lvl.rate * rateMult);
     /* Nur Optik: Turmkopf dreht sich zum Ziel, Rueckstoss klingt ab (siehe drawTower) */
-    tw.aim = Math.atan2(target.y - tw.y, target.x - tw.x);
+    tw.aim = Math.atan2(targets[0].y - tw.y, targets[0].x - tw.x);
     tw.recoil = 1;
     Sound.shoot();
   }
@@ -2470,23 +2765,47 @@ function updateProjectiles(dt){
     const d = dist(p, target);
     const step = p.speed*dt;
     if (d <= step){
-      applyDamageToEnemy(target, p.dmg, undefined, p.dmgType);
+      const L = p.lvl;
+      const opts = (L.pierce || L.bossMult) ? L : null;
+      applyDamageToEnemy(target, p.dmg, undefined, p.dmgType, opts);
       spawnHitSpark(target.x, target.y, p.color);
-      if (p.slowPct){ target.slowUntil = state.playTime + p.slowDur; target.slowPct = p.slowPct; }
-      if (p.splashRadius){
+      if (L.slowPct) applySlow(target, L.slowPct, L.slowDur);
+      if (L.splashRadius){
         for (const other of state.enemies){
           if (other.id === target.id || other.hp <= 0) continue;
-          if (dist(target, other) <= p.splashRadius) applyDamageToEnemy(other, p.dmg, undefined, p.dmgType);
+          if (p.groundOnly && ENEMY_TYPES[other.type].flying) continue;
+          if (dist(target, other) <= L.splashRadius) applyDamageToEnemy(other, p.dmg, undefined, p.dmgType, opts);
         }
+        state.particles.push({ type:'puff', x:target.x, y:target.y, r0:6, r1:L.splashRadius, color:PAL.gold, life:0.22, maxLife:0.22 });
       }
-      if (p.chain){
-        const chainR = p.chainRadius || 80;
-        const other = state.enemies.find(e => e.id !== target.id && e.hp > 0 && dist(target, e) <= chainR);
-        if (other){
-          applyDamageToEnemy(other, Math.round(p.dmg*0.5), undefined, p.dmgType);
-          other.slowUntil = state.playTime + 1.0;
-          other.slowPct = Math.max(other.slowPct || 0, 0.3);
-          state.particles.push({ type:'chain', x1:target.x, y1:target.y, x2:other.x, y2:other.y, life:0.15, maxLife:0.15 });
+      if (L.novaRadius){
+        /* Frostnova: bremst alles rund um das Ziel, Schaden nur am Ziel selbst */
+        for (const other of state.enemies){
+          if (other.id === target.id || other.hp <= 0) continue;
+          if (dist(target, other) <= L.novaRadius) applySlow(other, L.slowPct, L.slowDur);
+        }
+        state.particles.push({ type:'puff', x:target.x, y:target.y, r0:8, r1:L.novaRadius, color:'#9BEBE4', life:0.3, maxLife:0.3 });
+      }
+      if (L.chain){
+        /* Magier-Kette. Ketten-Radius pro Stufe konfigurierbar (Playtest-Befund 2.4),
+           ohne Angabe 80. Kettenblitz (chainCount) springt mehrfach weiter, jeder
+           Gegner wird hoechstens einmal getroffen. */
+        const chainR = L.chainRadius || 80, jumps = L.chainCount || 1;
+        const hit = new Set([target.id]);
+        let from = target;
+        for (let j = 0; j < jumps; j++){
+          let next = null, nd = Infinity;
+          for (const e of state.enemies){
+            if (e.hp <= 0 || hit.has(e.id)) continue;
+            const dd = dist(from, e);
+            if (dd <= chainR && dd < nd){ next = e; nd = dd; }
+          }
+          if (!next) break;
+          applyDamageToEnemy(next, Math.round(p.dmg * (jumps > 1 ? 0.6 : 0.5)), undefined, p.dmgType);
+          applySlow(next, 0.3, 1.0);
+          state.particles.push({ type:'chain', x1:from.x, y1:from.y, x2:next.x, y2:next.y, life:0.18, maxLife:0.18 });
+          hit.add(next.id);
+          from = next;
         }
       }
     } else {
@@ -2501,21 +2820,53 @@ function updateProjectiles(dt){
   state.projectiles = remaining;
 }
 
+/* Glutwichte laufen am Boden: keine Flieger. Feuerimmune Gegner lassen sie aus, statt
+   sich wirkungslos an ihnen zu verbrauchen. */
+function impCanTarget(e){
+  const t = ENEMY_TYPES[e.type];
+  return !t.flying && t.immuneTo !== 'feuer';
+}
 function updateImps(dt){
   const remaining = [];
+  /* Ziel-Verteilung (Overhaul v3, Feedback 21.5/31.6): bei vielen Oefen stuerzten sich
+     alle Wichte auf den naechsten Gegner (bis zu 94 auf einen), der Rest der Welle starb
+     ohne sichtbaren Kampf. pending zaehlt, wie viel Wicht-Schaden schon zu einem Gegner
+     unterwegs ist. Ein neuer Wicht nimmt den naechsten Gegner, der noch nicht "versorgt" ist. */
+  const pending = {};
+  for (const imp of state.imps) if (imp.targetId) pending[imp.targetId] = (pending[imp.targetId] || 0) + imp.hp;
+  let alive = null;
   for (const imp of state.imps){
     let target = state.enemies.find(e => e.id === imp.targetId && e.hp > 0);
     if (!target){
-      const alive = state.enemies.filter(e => e.hp > 0);
+      if (alive === null) alive = state.enemies.filter(e => e.hp > 0 && impCanTarget(e));
       if (!alive.length){ remaining.push(imp); continue; }
-      target = alive.reduce((a,b) => dist(imp,b) < dist(imp,a) ? b : a);
+      const focus = alive.find(e => e.id === state.focusId);
+      if (focus) target = focus;
+      else {
+        let best = null, bd = Infinity, any = null, ad = Infinity;
+        for (const e of alive){
+          const d = dist(imp, e);
+          if (d < ad){ any = e; ad = d; }
+          if ((pending[e.id] || 0) < e.hp + (e.shield || 0) * imp.hp && d < bd){ best = e; bd = d; }
+        }
+        target = best || any;
+      }
       imp.targetId = target.id;
+      pending[target.id] = (pending[target.id] || 0) + imp.hp;
     }
     const d = dist(imp, target);
     const step = 70*dt;
     if (d <= 14){
       applyDamageToEnemy(target, imp.hp, undefined, 'feuer'); // Glutwichte sind immer Ofen/Feuer, einziger Spawner-Turmtyp
-      spawnHitSpark(target.x, target.y, '#E8742A');
+      spawnHitSpark(target.x, target.y, PAL.ember);
+      if (imp.splash){
+        /* Sprengofen: die Explosion trifft alle Bodengegner im Umkreis mit 60 % */
+        for (const other of state.enemies){
+          if (other.id === target.id || other.hp <= 0 || ENEMY_TYPES[other.type].flying) continue;
+          if (dist(target, other) <= imp.splash) applyDamageToEnemy(other, imp.hp * 0.6, undefined, 'feuer');
+        }
+        state.particles.push({ type:'puff', x:target.x, y:target.y, r0:6, r1:imp.splash, color:PAL.ember, life:0.25, maxLife:0.25 });
+      }
     } else {
       imp.x += (target.x - imp.x)/d*step;
       imp.y += (target.y - imp.y)/d*step;
@@ -2660,14 +3011,19 @@ const ENEMY_VISUAL = {
   ogre:   { hitR:18 },
   boss:   { hitR:26, scale:1.25 },
   salamander: { hitR:15 },
-  gepanzert:  { hitR:16 }
+  gepanzert:  { hitR:16 },
+  kaefer:     { hitR:8, noPack:true },
+  schamane:   { hitR:14 },
+  schildwache:{ hitR:15 },
+  brutmutter: { hitR:19 },
+  slimeling:  { hitR:8, noPack:true }
 };
 
-function drawSlime(c, e){
+function drawSlime(c, e, color){
   const w = Math.sin(ART_T*7 + e.id) * 0.07;
   c.save(); c.scale(1 + w, 1 - w);
   c.beginPath(); c.moveTo(-11,8); c.quadraticCurveTo(-14,-11,0,-12); c.quadraticCurveTo(14,-11,11,8); c.quadraticCurveTo(0,11,-11,8); c.closePath();
-  ink(c, '#62C465', 2);
+  ink(c, color || '#62C465', 2);
   c.fillStyle = 'rgba(255,255,255,0.45)'; ell(c, -5, -6, 3, 1.8, -0.5); c.fill();
   c.fillStyle = INK; circ(c, 2, -2, 1.7); c.fill(); circ(c, 7.5, -2, 1.7); c.fill();
   c.beginPath(); c.moveTo(3,3); c.quadraticCurveTo(5,5,7,3); c.strokeStyle = INK; c.lineWidth = 1.3; c.stroke();
@@ -2768,8 +3124,75 @@ function drawGepanzert(c, e){
   c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-10,-3); c.lineTo(-10,2); c.stroke();
 }
 
-const ENEMY_DRAW = { slime:drawSlime, goblin:drawGoblin, bat:drawBat, ogre:drawOgre, boss:drawDragon, salamander:drawSalamander, gepanzert:drawGepanzert };
+/* ---- Neue Gegner (Overhaul v3) ---- */
+/* Kohlenkaefer: klein, dunkel, mit Glutstreifen. Kommt als Schwarm. */
+function drawKaefer(c, e){
+  const w = Math.sin(ART_T*22 + e.id) * 2;
+  c.strokeStyle = INK; c.lineWidth = 1.6; c.lineCap = 'round';
+  c.beginPath();
+  for (const dx of [-3, 0, 3]){ c.moveTo(dx, -3); c.lineTo(dx + w*0.5, -7.5); c.moveTo(dx, 3); c.lineTo(dx - w*0.5, 7.5); }
+  c.stroke();
+  ell(c, 0, 0, 6.5, 4.8); ink(c, '#2B2420', 1.8);
+  c.strokeStyle = PAL.ember; c.lineWidth = 1.6;
+  c.beginPath(); c.moveTo(-2, -3.6); c.lineTo(-2, 3.6); c.moveTo(1.5, -4); c.lineTo(1.5, 4); c.stroke();
+  circ(c, 6.2, 0, 2.7); ink(c, '#2B2420', 1.5);
+  c.fillStyle = PAL.gold; circ(c, 7.2, -0.8, 0.8); c.fill();
+}
 
+/* Schamane: gruene Robe, Stab mit leuchtender Kugel. Die Kugel pulsiert - er heilt. */
+function drawSchamane(c, e){
+  const pulse = 0.5 + 0.5*Math.sin(ART_T*4 + e.id);
+  poly(c, [-9,12, -6,-5, 6,-5, 9,12]); ink(c, '#2E8F6B', 2.2);
+  c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-2,-4); c.lineTo(-4,11); c.moveTo(3,-4); c.lineTo(4,11); c.stroke();
+  circ(c, 1, -9, 7); ink(c, '#3FB88A', 2);
+  ell(c, 3, -8, 4, 4.5); c.fillStyle = INK; c.fill();
+  c.fillStyle = '#B8FFD9'; circ(c, 2, -8.5, 1); c.fill(); circ(c, 5.3, -8.5, 1); c.fill();
+  c.beginPath(); c.moveTo(13, 12); c.lineTo(13, -11);
+  c.strokeStyle = INK; c.lineWidth = 4; c.lineCap = 'round'; c.stroke();
+  c.strokeStyle = PAL.wood; c.lineWidth = 1.8; c.stroke();
+  circ(c, 13, -15, 3.4 + pulse*1.2); ink(c, '#8CFFC0', 1.5);
+}
+
+/* Schildwache: Krieger hinter einem grossen Schild. Ist der Schild gebrochen,
+   fehlt er - der Gegner ist dann sichtbar verwundbar. */
+function drawSchildwache(c, e){
+  const st = Math.sin(ART_T*6 + e.id) * 2;
+  c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-5,8); c.lineTo(-6 - st, 14); c.moveTo(2,8); c.lineTo(3 + st, 14);
+  c.strokeStyle = INK; c.lineWidth = 5; c.stroke();
+  roundRect(c, -10, -6, 15, 16, 4); ink(c, '#8A5A3C', 2.2);
+  circ(c, -2, -11, 6); ink(c, '#D2A679', 2);
+  c.beginPath(); c.arc(-2, -12, 6.5, Math.PI, 0); c.closePath(); ink(c, PAL.steel, 1.8);
+  c.fillStyle = INK; circ(c, 0, -10, 1); c.fill();
+  if (e.shield === undefined || e.shield > 0){
+    roundRect(c, 5, -15, 9, 28, 3.5); ink(c, PAL.bone, 2.4);
+    c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(5, -5); c.lineTo(14, -5); c.moveTo(5, 4); c.lineTo(14, 4); c.stroke();
+    circ(c, 9.5, -0.5, 2.4); ink(c, PAL.ember, 1.3);
+  }
+}
+
+/* Brutmutter: aufgeblaehter Schleim, in dem man die Brut schon sieht. */
+function drawBrutmutter(c, e){
+  const w = Math.sin(ART_T*4 + e.id) * 0.05;
+  c.save(); c.scale(1 + w, 1 - w);
+  c.beginPath(); c.moveTo(-17,11); c.quadraticCurveTo(-21,-15,0,-17); c.quadraticCurveTo(21,-15,17,11); c.quadraticCurveTo(0,16,-17,11); c.closePath();
+  ink(c, '#A9C94A', 2.5);
+  for (const [dx, dy, r] of [[-7,3,4.5],[4,6,4],[0,-4,4.2],[9,-2,3.4]]){
+    c.beginPath(); c.arc(dx, dy, r, 0, Math.PI*2); c.fillStyle = '#5E7F22'; c.fill();
+    c.strokeStyle = INK; c.lineWidth = 1.2; c.stroke();
+  }
+  c.fillStyle = 'rgba(255,255,255,0.45)'; ell(c, -8, -9, 4.5, 2.4, -0.5); c.fill();
+  c.fillStyle = INK; circ(c, 6, -9, 2); c.fill(); circ(c, 12, -8, 2); c.fill();
+  c.restore();
+}
+function drawSlimeling(c, e){
+  c.save(); c.scale(0.62, 0.62);
+  drawSlime(c, e, '#B9D94A');
+  c.restore();
+}
+
+const ENEMY_DRAW = { slime:drawSlime, goblin:drawGoblin, bat:drawBat, ogre:drawOgre, boss:drawDragon, salamander:drawSalamander, gepanzert:drawGepanzert,
+  kaefer:drawKaefer, schamane:drawSchamane, schildwache:drawSchildwache, brutmutter:drawBrutmutter, slimeling:drawSlimeling };
 /* Kohle-Rucksack (Darius-Auftrag 082826): traegt den Lohn sichtbar, Groesse grob nach
    e.reward. Sitzt auf der Rueckseite der Laufrichtung. */
 function drawPack(c, e, facingLeft, y){
@@ -2813,6 +3236,30 @@ function drawEnemy(c, e){
     c.strokeStyle = '#BFEFFF'; c.lineWidth = 2.5;
     circ(c, e.x, fy - 2, vis.hitR + 3); c.stroke();
     c.globalAlpha = 1;
+  }
+  const topY = fy - vis.hitR * (vis.scale || 1);
+  if (e.healFlash > 0){
+    /* Gruenes Plus: dieser Gegner wurde gerade von einem Schamanen geheilt */
+    c.globalAlpha = clamp(e.healFlash / 0.5, 0, 1);
+    c.strokeStyle = '#8CFFC0'; c.lineWidth = 3; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(e.x - 5, topY - 4); c.lineTo(e.x + 5, topY - 4); c.moveTo(e.x, topY - 9); c.lineTo(e.x, topY + 1); c.stroke();
+    c.globalAlpha = 1;
+  }
+  if (e.shield > 0){
+    /* Schild-Ladungen als Kaestchen: so viele Treffer schluckt der Schild noch */
+    for (let i = 0; i < e.shield; i++){
+      c.fillStyle = INK; c.fillRect(e.x - e.shield*3.5 + i*7 - 1, topY - 21, 7, 7);
+      c.fillStyle = PAL.bone; c.fillRect(e.x - e.shield*3.5 + i*7, topY - 20, 5, 5);
+    }
+  }
+  if (state.focusId === e.id){
+    /* Fokus-Markierung: drehende Klammern in Glutfarbe */
+    c.strokeStyle = PAL.ember; c.lineWidth = 3; c.lineCap = 'round';
+    const r = vis.hitR * (vis.scale || 1) + 9;
+    for (let k = 0; k < 4; k++){
+      const a = ART_T * 2.5 + k * Math.PI/2;
+      c.beginPath(); c.arc(e.x, fy - 2, r, a, a + 0.9); c.stroke();
+    }
   }
   /* Lebensleiste erst nach dem ersten Treffer - volle Leisten ueber jeder Figur
      machten das Feld unruhig. Bosse zeigen sie immer. */
@@ -3679,6 +4126,39 @@ function updateTopbarUI(){
   dom.towerValue.classList.toggle('low', cap !== Infinity && state.towers.length >= cap);
   syncBuildMenuUI();
   syncBombBtnUI();
+  syncForgeBtn();
+}
+
+/* WELLENVORSCHAU (Overhaul v3): zeigt die Gegner der naechsten Welle als Symbole mit
+   Anzahl. Wird nur neu gebaut, wenn sich die Welle aendert. Ein Tipp auf ein Symbol
+   oeffnet die Gegner-Seite der Anleitung. */
+let wavePreviewKey = '';
+function renderWavePreview(n){
+  const key = n + '|' + state.mapKey + '|' + state.waveActive;
+  if (key === wavePreviewKey) return;
+  wavePreviewKey = key;
+  const box = dom.wavePreview;
+  box.innerHTML = '';
+  if (!n) return;
+  const wave = waveFor(n);
+  box.classList.toggle('boss', !!wave.isBoss);
+  if (state.waveActive){
+    const lab = document.createElement('span'); lab.className = 'wp-note'; lab.textContent = 'Danach:'; box.appendChild(lab);
+  }
+  summarizeWave(wave).forEach(({ type, count }) => {
+    const t = ENEMY_TYPES[type];
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'wp-chip' + (type === 'boss' ? ' boss' : '');
+    chip.title = t.name + ': ' + t.info;
+    chip.setAttribute('aria-label', count + ' mal ' + t.name + '. ' + t.info);
+    chip.appendChild(enemyIcon(type, 24));
+    chip.appendChild(document.createTextNode(String(count)));
+    chip.addEventListener('click', () => openGuideModal('enemies'));
+    box.appendChild(chip);
+  });
+  if (wave.era){
+    const lab = document.createElement('span'); lab.className = 'wp-note'; lab.textContent = wave.era.name; box.appendChild(lab);
+  }
 }
 
 /* Wellen-Feld in der Leiste: zeigt immer, was gerade gilt (bereit, laeuft, beendet).
@@ -3700,6 +4180,8 @@ function updateWaveBarUI(){
     enabled = true;
   }
   setHtmlIfChanged(dom.waveBarText, label + '<span>' + sub + '</span>');
+  const upcoming = state.waveNumber + 1;
+  renderWavePreview((state.gameEnded || finished || (upcoming > total && !state.endlessMode)) ? 0 : upcoming);
   setHtmlIfChanged(dom.startWaveBtn, btn);
   dom.startWaveBtn.disabled = !enabled;
 }
@@ -3707,12 +4189,17 @@ function updateWaveBarUI(){
 function towerStatsHtml(def, lvl){
   const row = (label, value) => '<span>' + label + ' <b>' + value + '</b></span>';
   if (def.kind === 'spawner'){
-    return row('Wicht-HP', lvl.childHp) + row('Alle', lvl.interval.toFixed(1) + ' s') + row('Gleichzeitig', lvl.maxActive);
+    return row('Wicht-HP', lvl.childHp) + row('Alle', lvl.interval.toFixed(1) + ' s') + row('Gleichzeitig', lvl.maxActive) +
+      (lvl.impSplash ? row('Explosion', lvl.impSplash) : '');
   }
   return row('Schaden', lvl.dmg) + row('Reichweite', lvl.range) + row('Schüsse', lvl.rate.toFixed(1) + '/s') +
     (lvl.slowPct ? row('Bremst', Math.round(lvl.slowPct*100) + ' %') : '') +
     (lvl.splashRadius ? row('Fläche', lvl.splashRadius) : '') +
-    (lvl.chain ? row('Kette', (lvl.chainRadius || 80)) : '');
+    (lvl.chain ? row('Kette', (lvl.chainCount || 1) + '× / ' + (lvl.chainRadius || 80)) : '') +
+    (lvl.multi ? row('Ziele', lvl.multi) : '') +
+    (lvl.novaRadius ? row('Nova', lvl.novaRadius) : '') +
+    (lvl.pierce ? row('Panzer', 'ignoriert') : '') +
+    (lvl.bossMult ? row('Boss', '×' + String(lvl.bossMult).replace('.', ',')) : '');
 }
 
 /* Turm-Panel in der Leiste. Es ersetzt das Baumenue, solange ein Turm gewaehlt ist
@@ -3734,66 +4221,95 @@ function syncSelectionPanel(){
   const lvl = towerLevelStats(tw, def);
   const isMax = tw.level >= def.levels.length - 1; // true ab Stufe 4 UND bei Paragon (4 >= 3)
   const nextLvl = !isMax ? def.levels[tw.level+1] : null;
+  const choosing = !!nextLvl && tw.level + 1 === LEVEL4_INDEX; // Stufe 3: Wahl zwischen zwei Varianten
   const refund = sellRefund(towerInvestment(tw));
   const dots = def.levels.map((_, i) =>
     '<span class="lvl-dot' + (isParagon ? ' paragon' : (i <= tw.level ? (isElite ? ' elite' : ' filled') : '')) + '"></span>').join('');
   /* Stufe-4-Limit blockiert das Upgrade unabhaengig von der Kohle - der Knopf muss
      das erklaeren, sonst sieht er nur nach "zu teuer" aus. */
-  const blockedByLvl4 = !!nextLvl && (tw.level+1 === LEVEL4_INDEX) && level4LimitReached();
+  const blockedByLvl4 = choosing && level4LimitReached();
   /* Paragon-Fusion (Umbau 073026): nur an Stufe-4-Tuermen, unabhaengig vom Upgrade-Pfad. */
   const fuseEligible = !isParagon && isElite && canFuseParagon(tw);
   const fuseCost = fuseEligible ? paragonFusionCost(tw, sameTypeLevel4Others(tw).slice(0, PARAGON_FUSION_COUNT-1)) : 0;
 
   let primary;
-  if (nextLvl){
-    primary = blockedByLvl4
-      ? '<button class="btn btn-primary" id="selUpgradeBtn" disabled>Stufe-4-Limit ' + level4Count() + '/' + MAX_LEVEL4_TOWERS + '</button>'
-      : '<button class="btn btn-primary" id="selUpgradeBtn"' + (state.kohle < nextLvl.upgradeCost ? ' disabled' : '') + '>' + ic('up') + 'Stufe ' + (tw.level + 2) + kohleHtml(nextLvl.upgradeCost) + '</button>';
+  if (blockedByLvl4){
+    primary = '<button class="btn btn-primary" id="selUpgradeBtnA" disabled>Stufe-4-Limit ' + level4Count() + '/' + MAX_LEVEL4_TOWERS + '</button>';
+  } else if (choosing){
+    /* Upgrade-Pfade: zwei Knoepfe, je einer pro Variante, mit einem Satz Erklaerung */
+    primary = [['A', def.levels[LEVEL4_INDEX]], ['B', def.alt4]].map(([v, L]) =>
+      '<button class="btn btn-primary" id="selUpgradeBtn' + v + '"' + (state.kohle < L.upgradeCost ? ' disabled' : '') + '>' + L.title + kohleHtml(L.upgradeCost) + '</button>' +
+      '<div class="sel-note">' + L.desc + '</div>').join('');
+  } else if (nextLvl){
+    primary = '<button class="btn btn-primary" id="selUpgradeBtnA"' + (state.kohle < nextLvl.upgradeCost ? ' disabled' : '') + '>' + ic('up') + 'Stufe ' + (tw.level + 2) + kohleHtml(nextLvl.upgradeCost) + '</button>';
   } else if (isParagon){
     primary = '<div class="sel-note">Paragon. Das ist die höchste Stufe.</div>';
   } else if (fuseEligible){
     primary = '<button class="btn btn-primary" id="selFuseBtn"' + (state.kohle < fuseCost ? ' disabled' : '') + '>' + ic('gem') + 'Paragon' + kohleHtml(fuseCost) + '</button>' +
       '<div class="sel-note">Verschmilzt 3 Türme dieser Art. 2 Bauplätze werden frei.</div>';
   } else {
-    primary = '<div class="sel-note">Stufe 4. Für einen Paragon brauchst du 3 Türme dieser Art auf Stufe 4' +
+    primary = '<div class="sel-note">Für einen Paragon brauchst du 3 Türme dieser Art auf Stufe 4' +
       (paragonCountForType(tw.type) >= MAX_PARAGONS_PER_TYPE ? ' (hier schon gebaut).' : '.') + '</div>';
   }
+  const sub = isParagon ? 'Paragon' : (isElite ? lvl.title : (choosing ? 'Wähle den Weg für Stufe 4' : ''));
+  /* Zielmodus nur fuer schiessende Tuerme. Die Wichte des Ofens laufen zum naechsten
+     Gegner, der noch nicht versorgt ist (siehe updateImps). */
+  const modes = def.kind === 'shooter'
+    ? '<div class="mode-row" role="group" aria-label="Zielmodus">' + TARGET_MODES.map(m =>
+        '<button class="mode-btn' + ((tw.targetMode || 'first') === m.id ? ' active' : '') + '" data-mode="' + m.id + '" title="' + m.title + '">' + m.label + '</button>').join('') + '</div>'
+    : '';
 
   dom.selectionPanel.innerHTML =
     '<div class="sel-head"><div class="sel-title"><div class="sel-name">' + def.name + '</div>' +
+      (sub ? '<div class="sel-sub">' + sub + '</div>' : '') +
       '<div class="sel-level-dots" title="Stufe">' + dots + '</div></div>' +
       '<button class="sel-close" id="selCloseBtn" aria-label="Auswahl schließen">' + ic('close') + '</button></div>' +
     '<div class="sel-stats">' + towerStatsHtml(def, lvl) + '</div>' +
+    modes +
     '<div class="sel-actions">' + primary +
       '<button class="btn btn-danger" id="selSellBtn">' + ic('sell') + 'Verkaufen<span class="cost">+' + refund + '</span></button>' +
     '</div>';
   dom.selectionPanel.querySelector('.sel-head').prepend(towerIcon(tw.type, 38, tw.level));
+  dom.selectionPanel.classList.toggle('choosing', choosing);
 
   dom.selectionPanel.classList.add('show');
   $('selCloseBtn').addEventListener('click', () => { state.selectedTowerId = null; syncSelectionPanel(); });
-  if (nextLvl) $('selUpgradeBtn').addEventListener('click', () => upgradeTower(tw.id));
+  const btnA = $('selUpgradeBtnA'), btnB = $('selUpgradeBtnB');
+  if (btnA) btnA.addEventListener('click', () => upgradeTower(tw.id, 'a'));
+  if (btnB) btnB.addEventListener('click', () => upgradeTower(tw.id, 'b'));
   if (fuseEligible) $('selFuseBtn').addEventListener('click', () => fuseParagon(tw.id));
   $('selSellBtn').addEventListener('click', () => requestSell(tw.id));
+  dom.selectionPanel.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tw.targetMode = btn.dataset.mode;
+      dom.selectionPanel.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+    });
+  });
 }
 
-function upgradeTower(id){
+/* variant ('a' oder 'b') zaehlt nur beim Schritt auf Stufe 4, siehe TOWER_TYPES. */
+function upgradeTower(id, variant){
   const tw = state.towers.find(t => t.id === id);
   if (!tw) return;
   const def = TOWER_TYPES[tw.type];
   if (tw.level >= def.levels.length-1) return;
+  const toLevel4 = tw.level+1 === LEVEL4_INDEX;
   /* Stufe-4-Limit: gleiches Muster wie das Turmlimit in placeTower() - ablehnen UND
      sichtbar zurueckmelden, sonst wirkt der Klick verschluckt. */
-  if (tw.level+1 === LEVEL4_INDEX && level4LimitReached()){
+  if (toLevel4 && level4LimitReached()){
     spawnFloatText(tw.x, tw.y-24, 'Stufe-4-Limit erreicht (' + MAX_LEVEL4_TOWERS + ')', '#FF7462');
     return;
   }
-  const nextLvl = def.levels[tw.level+1];
+  const useB = toLevel4 && variant === 'b';
+  const nextLvl = useB ? def.alt4 : def.levels[tw.level+1];
   if (state.kohle < nextLvl.upgradeCost) return;
   state.kohle -= nextLvl.upgradeCost;
   tw.level++;
+  if (toLevel4) tw.variant = useB ? 'b' : 'a';
   Sound.upgrade();
   buzz(15);
   state.particles.push({ type:'puff', x:tw.x, y:tw.y, r0:14, r1:34, color:PAL.gold, life:0.4, maxLife:0.4 });
+  if (toLevel4) spawnFloatText(tw.x, tw.y - 28, nextLvl.title, PAL.gold, 16);
   syncSelectionPanel();
   updateTopbarUI();
 }
@@ -3806,13 +4322,13 @@ function refreshSelectionAffordability(){
   const tw = state.towers.find(t => t.id === state.selectedTowerId);
   if (!tw) return;
   const def = TOWER_TYPES[tw.type];
-  const btn = document.getElementById('selUpgradeBtn');
-  if (btn){
-    const nextLvl = def.levels[tw.level+1];
-    if (nextLvl){
-      const blockedByLvl4 = (tw.level+1 === LEVEL4_INDEX) && level4LimitReached();
-      btn.disabled = blockedByLvl4 || state.kohle < nextLvl.upgradeCost;
-    }
+  const nextLvl = def.levels[tw.level+1];
+  if (nextLvl){
+    const toLevel4 = tw.level+1 === LEVEL4_INDEX;
+    const blockedByLvl4 = toLevel4 && level4LimitReached();
+    const btnA = document.getElementById('selUpgradeBtnA'), btnB = document.getElementById('selUpgradeBtnB');
+    if (btnA) btnA.disabled = blockedByLvl4 || state.kohle < nextLvl.upgradeCost;
+    if (btnB) btnB.disabled = blockedByLvl4 || state.kohle < def.alt4.upgradeCost;
   }
   const fuseBtn = document.getElementById('selFuseBtn');
   if (fuseBtn && tw.level === LEVEL4_INDEX){
@@ -3872,7 +4388,8 @@ function placeTower(type, col, row){
   state.kohle -= def.cost;
   const tower = {
     id: state.nextEntityId++, type, level: 0, col, row, x: c.x, y: c.y, cooldown: 0,
-    aim: -Math.PI/2, recoil: 0
+    aim: -Math.PI/2, recoil: 0,
+    targetMode: def.targeting || 'first', variant: null
   };
   if (def.kind === 'spawner') tower.spawnTimer = def.levels[0].interval;
   state.towers.push(tower);
@@ -4006,7 +4523,7 @@ function handleCanvasPointerDown(evt){
     evt.preventDefault();
     return;
   }
-  commitCanvasAction(pos, cell, false);
+  commitCanvasAction(pos, cell, evt.pointerType !== 'mouse');
 }
 
 function handleCanvasPointerMove(evt){
@@ -4062,6 +4579,22 @@ function commitCanvasAction(pos, cell, viaTouch){
     return;
   }
   const hit = state.towers.find(t => t.col === col && t.row === row);
+  if (!hit){
+    /* Fokus-Markierung (Overhaul v3): ein Tipp auf einen Gegner markiert ihn. Alle Tuerme
+       in Reichweite schiessen dann zuerst auf ihn. Nochmal antippen loescht die Markierung.
+       Der Trefferkreis ist grosszuegig, weil sich das Ziel bewegt. */
+    let best = null, bd = viaTouch ? 34 : 24;
+    for (const e of state.enemies){
+      if (e.hp <= 0) continue;
+      const d = dist(pos, { x: e.x, y: e.y - (ENEMY_TYPES[e.type].flying ? 12 : 0) });
+      if (d < bd){ best = e; bd = d; }
+    }
+    if (best){
+      state.focusId = state.focusId === best.id ? null : best.id;
+      buzz(10);
+      return;
+    }
+  }
   state.selectedTowerId = hit ? hit.id : null;
   syncSelectionPanel();
 }
@@ -4297,21 +4830,163 @@ async function submitFeedback(evt){
 
 /* =========================================================
    ANLEITUNG (nachlesbar im Spiel statt Textblock auf dem Startbildschirm)
+   Turm- und Gegnerseiten entstehen aus TOWER_TYPES und ENEMY_TYPES. Neue Eintraege
+   dort erscheinen hier von selbst, die Anleitung kann nicht veralten.
    ========================================================= */
+const GUIDE_TABS = [
+  { id:'basics', label:'Grundlagen' },
+  { id:'towers', label:'Türme' },
+  { id:'enemies', label:'Gegner' },
+  { id:'extras', label:'Bombe, Paragon, Endlos' },
+  { id:'controls', label:'Steuerung' }
+];
 let guideAutoPaused = false;
 function openGuideModal(tabId){
-  if (state.screen === 'game' && !state.gameEnded && !state.paused){ setPaused(true); guideAutoPaused = true; }
-  else guideAutoPaused = false;
+  if (!dom.guideModal.classList.contains('show')){
+    if (state.screen === 'game' && !state.gameEnded && !state.paused){ setPaused(true); guideAutoPaused = true; }
+    else guideAutoPaused = false;
+  }
   renderGuide(tabId || 'basics');
   dom.guideModal.classList.add('show');
+  dom.guideModal.scrollTop = 0;
 }
 function closeGuideModal(){
   dom.guideModal.classList.remove('show');
   if (guideAutoPaused){ setPaused(false); guideAutoPaused = false; }
 }
+function guideRow(iconCanvas, title, tags, text){
+  const row = document.createElement('div');
+  row.className = 'guide-row';
+  row.innerHTML = '<div><h3>' + title + '</h3>' + tags.map(t => '<span class="tag">' + t + '</span>').join('') + text + '</div>';
+  row.prepend(iconCanvas);
+  return row;
+}
 function renderGuide(tabId){
-  dom.guideTabs.innerHTML = '';
-  dom.guideBody.innerHTML = '<p>Baue Türme neben dem Weg. Sie stoppen die Gegner, bevor sie die Schmiede erreichen.</p>';
+  dom.guideTabs.innerHTML = GUIDE_TABS.map(t =>
+    '<button class="guide-tab' + (t.id === tabId ? ' active' : '') + '" data-tab="' + t.id + '" role="tab" aria-selected="' + (t.id === tabId) + '">' + t.label + '</button>').join('');
+  dom.guideTabs.querySelectorAll('.guide-tab').forEach(b => b.addEventListener('click', () => renderGuide(b.dataset.tab)));
+  const body = dom.guideBody;
+  body.innerHTML = '';
+  if (tabId === 'towers'){
+    TOWER_ORDER.forEach(key => {
+      const def = TOWER_TYPES[key], a = def.levels[LEVEL4_INDEX], b = def.alt4;
+      const notes = (def.groundOnly ? ' Trifft keine Flieger.' : '') + ' Schadenstyp: ' + def.dmgType + '.';
+      body.appendChild(guideRow(towerIcon(key, 52), def.name, [def.cost + ' Kohle'],
+        '<p>' + TOWER_ROLE[key] + notes + '</p>' +
+        '<p><b>Stufe 4, Weg A: ' + a.title + '.</b> ' + a.desc + '<br><b>Stufe 4, Weg B: ' + b.title + '.</b> ' + b.desc + '</p>'));
+    });
+  } else if (tabId === 'enemies'){
+    ENEMY_ORDER.forEach(key => {
+      const t = ENEMY_TYPES[key];
+      body.appendChild(guideRow(enemyIcon(key, 52), t.name,
+        [t.hp + ' Leben', 'Tempo ' + t.speed, 'kostet ' + t.livesCost + (t.livesCost === 1 ? ' Leben' : ' Leben')],
+        '<p>' + t.info + '</p>'));
+    });
+    const note = document.createElement('p');
+    note.style.marginTop = '10px';
+    note.textContent = 'Die Leben-Werte gelten für Welle 1. Mit jeder Welle haben alle Gegner mehr Leben.';
+    body.appendChild(note);
+  } else if (tabId === 'extras'){
+    body.innerHTML =
+      '<div class="section-label">Bombe</div>' +
+      '<p>Die Bombe kostet ' + BOMB_COST + ' Kohle und trifft alles in einem großen Kreis, auch Flieger. Sie zerschlägt Schilde. ' +
+      'Du hast ' + BOMB_MAX_PER_GAME + ' Bomben pro Spiel. Nach jeder Bombe lädt sie ' + BOMB_COOLDOWN + ' Sekunden. ' +
+      'Gegner, die durch die Bombe sterben, geben nur ' + Math.round(BOMB_REWARD_PCT*100) + ' % Kohle.</p>' +
+      '<div class="section-label">Stufe 4 und Paragon</div>' +
+      '<p>Beim Schritt auf Stufe 4 wählst du einen von zwei Wegen (siehe „Türme“). Höchstens ' + MAX_LEVEL4_TOWERS + ' Türme dürfen gleichzeitig auf Stufe 4 stehen.</p>' +
+      '<p>Drei Türme desselben Typs auf Stufe 4 verschmelzen zu einem Paragon. Er ist viel stärker, und zwei Bauplätze werden wieder frei. ' +
+      'Pro Turmtyp gibt es höchstens ' + MAX_PARAGONS_PER_TYPE + ' Paragon. Jede weitere Fusion kostet mehr.</p>' +
+      '<div class="section-label">Zielmodus und Markierung</div>' +
+      '<p>Jeder schießende Turm hat einen Zielmodus: Vorn, Stark, Schwach oder Nah. Du stellst ihn im Turm-Panel ein.</p>' +
+      '<p>Tippe einen Gegner an, dann bekommt er eine Markierung. Alle Türme in Reichweite schießen zuerst auf ihn, auch die Glutwichte laufen zu ihm. Ein zweiter Tipp löscht die Markierung.</p>' +
+      '<div class="section-label">Bosswellen</div>' +
+      '<p>Auf Mittel und Schwer kommt der Drache in Welle 5, 10, 15 und 20. Auf Leicht kommt er in Welle 6, 12 und 20.</p>' +
+      '<div class="section-label">Endlos-Modus und Schmiedewerk</div>' +
+      '<p>Nach Welle 20 kannst du weiterspielen. Das Turmlimit ist dann aufgehoben. Alle 10 Wellen wechselt die Ära: Schwarm, Flieger, Panzer, Heiler. Jede Ära verlangt einen anderen Umbau.</p>' +
+      '<p>Im Endlos-Modus öffnet das Schmiedewerk. Dort kaufst du dauerhafte Verbesserungen für alle Türme und neue Leben. Jeder Kauf macht den nächsten teurer.</p>';
+  } else if (tabId === 'controls'){
+    body.innerHTML =
+      '<div class="section-label">Touch</div>' +
+      '<ol class="guide-steps">' +
+      '<li>Tippe eine Turmkarte an. Die freien Felder werden hell umrandet.</li>' +
+      '<li>Leg den Finger aufs Spielfeld. Du siehst die Vorschau und die Reichweite, eine Lupe zeigt den Turm über dem Finger.</li>' +
+      '<li>Zieh den Finger auf das gewünschte Feld und lass los. Wenn du außerhalb des Spielfelds loslässt, passiert nichts.</li>' +
+      '</ol>' +
+      '<p>Die Bombe funktioniert genauso: Knopf antippen, Finger aufs Feld, zielen, loslassen. Verkaufen braucht zwei Tipps, damit nichts aus Versehen weg ist.</p>' +
+      '<div class="section-label">Maus und Tastatur</div>' +
+      '<p>Tasten 1–6 wählen einen Turm, ein Klick baut ihn. B macht die Bombe scharf. Die Leertaste startet die nächste Welle. P pausiert, M schaltet den Ton um, Esc bricht ab.</p>' +
+      '<div class="section-label">Einstellungen</div>' +
+      '<p>Im Menü (Zahnrad) stellst du die Steuerung auf Touch oder Maus und den Ton auf Voll, Reduziert oder Aus.</p>';
+  } else {
+    body.innerHTML =
+      '<ol class="guide-steps">' +
+      '<li>Die Gegner kommen aus dem Stollen und laufen den Weg entlang zur Schmiede.</li>' +
+      '<li>Du baust Türme auf die Felder neben dem Weg. Jeder Turm kostet Kohle.</li>' +
+      '<li>Besiegte Gegner lassen Kohle fallen. Damit baust du weiter und rüstest Türme bis Stufe 4 auf.</li>' +
+      '<li>Jeder Gegner, der die Schmiede erreicht, kostet Leben. Bei 0 Leben ist die Runde verloren.</li>' +
+      '<li>Nach 20 Wellen hast du gewonnen. Danach kannst du im Endlos-Modus weiterspielen.</li>' +
+      '</ol>' +
+      '<p>Die Wellenvorschau über dem Start-Knopf zeigt, welche Gegner als Nächstes kommen. Viele Gegner haben eine Sonderregel: ' +
+      'Flieger, Schilde, Panzerung, Feuerimmunität, Heilung. Eine einzige Turmsorte reicht deshalb nicht. Die Seiten „Türme“ und „Gegner“ zeigen, was gegen was hilft.</p>' +
+      '<p>Die Glut in der Schmiede zeigt deine Leben: Je kleiner die Flamme, desto weniger Leben sind übrig.</p>' +
+      '<p>Neu hier? Das Tutorial „Schmiedeschule“ zeigt alles Schritt für Schritt.</p>';
+  }
+}
+
+/* =========================================================
+   SCHMIEDEWERK (Overhaul v3): Kohle-Senke fuer den Endlos-Modus
+   Darius' Endlos-Lauf endete in Welle 68 mit 155.773 ungenutzter Kohle (Feedback 21) -
+   es gab nichts mehr zu kaufen. Das Schmiedewerk verkauft dauerhafte, runden-weite
+   Verbesserungen mit exponentiell steigendem Preis. Der Nutzen pro Kauf bleibt gleich,
+   der Preis waechst: die Senke laeuft nie leer und kippt die Balance trotzdem nicht.
+   Nur im Endlos-Modus, damit die Wellen 1-20 unveraendert bleiben.
+   ========================================================= */
+const FORGE_UPGRADES = [
+  { id:'dmg', name:'Schärfen', desc:'+6 % Schaden für alle Türme und Glutwichte', base:1200, growth:1.45, step:0.06 },
+  { id:'rate', name:'Blasebalg', desc:'+4 % Schussfolge für alle Türme und Öfen', base:1000, growth:1.45, step:0.04 },
+  { id:'repair', name:'Notreparatur', desc:'+2 Leben, sofort', base:400, growth:1.3, step:0 }
+];
+function forgeCost(u){ return Math.round(u.base * Math.pow(u.growth, state.forge[u.id]) / 10) * 10; }
+function forgeMult(id){ return 1 + state.forge[id] * (id === 'dmg' ? 0.06 : 0.04); }
+function buyForge(id){
+  const u = FORGE_UPGRADES.find(x => x.id === id);
+  if (!u || !state.endlessMode || state.gameEnded) return;
+  const cost = forgeCost(u);
+  if (state.kohle < cost) return;
+  state.kohle -= cost;
+  state.forge[id]++;
+  if (id === 'repair'){ state.lives += 2; state.maxLives = Math.max(state.maxLives, state.lives); }
+  Sound.upgrade();
+  renderForge();
+  updateTopbarUI();
+}
+function renderForge(){
+  const body = $('forgeBody');
+  body.innerHTML = FORGE_UPGRADES.map(u => {
+    const cost = forgeCost(u), n = state.forge[u.id];
+    const now = u.id === 'repair' ? '' : ' Jetzt: +' + Math.round(n * u.step * 100) + ' %.';
+    return '<div class="forge-row"><div><h3>' + u.name + ' <span class="tag">' + n + '× gekauft</span></h3><p>' + u.desc + '.' + now + '</p></div>' +
+      '<button class="btn btn-primary" data-forge="' + u.id + '"' + (state.kohle < cost ? ' disabled' : '') + '>' + kohleHtml(cost) + '</button></div>';
+  }).join('');
+  body.querySelectorAll('[data-forge]').forEach(b => b.addEventListener('click', () => buyForge(b.dataset.forge)));
+}
+let forgeAutoPaused = false;
+function openForgeModal(){
+  if (!state.endlessMode) return;
+  if (!state.gameEnded && !state.paused){ setPaused(true); forgeAutoPaused = true; } else forgeAutoPaused = false;
+  renderForge();
+  $('forgeModal').classList.add('show');
+}
+function closeForgeModal(){
+  $('forgeModal').classList.remove('show');
+  if (forgeAutoPaused){ setPaused(false); forgeAutoPaused = false; }
+}
+/* Knopf in der Leiste: nur im Endlos-Modus sichtbar, leuchtet, wenn ein Kauf moeglich ist. */
+function syncForgeBtn(){
+  const btn = $('forgeBtn');
+  btn.style.display = state.endlessMode ? '' : 'none';
+  dom.rail.classList.toggle('endless', !!state.endlessMode);
+  if (state.endlessMode) btn.classList.toggle('btn-primary', FORGE_UPGRADES.some(u => state.kohle >= forgeCost(u)));
 }
 
 /* =========================================================
@@ -4347,6 +5022,8 @@ function wireEvents(){
   dom.openGuideBtn.addEventListener('click', () => openGuideModal());
   dom.guideFromSettingsBtn.addEventListener('click', () => { closeSettingsModal(); openGuideModal(); });
   dom.closeGuideBtn.addEventListener('click', closeGuideModal);
+  $('forgeBtn').addEventListener('click', openForgeModal);
+  $('closeForgeBtn').addEventListener('click', closeForgeModal);
   document.querySelectorAll('input[name="controlMode"]').forEach(r => {
     r.addEventListener('change', () => { if (r.checked){ state.controlMode = r.value; applyControlMode(); } });
   });
