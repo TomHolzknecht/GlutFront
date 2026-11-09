@@ -305,7 +305,7 @@
   .mode-btn.active{background:var(--ink); color:var(--paper);}
   .sel-actions{display:flex; flex-direction:column; gap:7px;}
   .sel-actions .sel-note{margin-top:-4px;}
-  .sel-actions .btn{width:100%; font-size:15px; min-height:42px; padding:7px 8px; gap:6px;}
+  .sel-actions .btn{width:100%; min-width:0; font-size:15px; min-height:42px; padding:7px 8px; gap:6px; white-space:nowrap;}
   .sel-actions .btn .cost{font-family:var(--font-num); font-size:13px; letter-spacing:0; margin-left:auto; display:inline-flex; align-items:center; gap:2px;}
 
   #forgeBtn{width:100%; min-height:40px; justify-content:flex-start; font-size:15px; margin-top:auto;}
@@ -344,8 +344,16 @@
     .tower-card .tname{display:none;}
     .tower-card .tcost{font-size:11px;}
     #selectionPanel{padding:6px; gap:5px;}
-    #selectionPanel.choosing .sel-stats{display:none;}
-    .mode-btn{min-height:32px;}
+    /* Platz in der Leiste: solange ein Turm gewaehlt ist, weicht die Wellenvorschau.
+       Bei der Wahl des Stufe-4-Wegs weichen zusaetzlich Werte und Bombe - das Panel
+       passt dann ohne Scrollen in 363 px Hoehe (gemessen bei 812 x 375). */
+    #rail.has-selection #wavePreview{display:none;}
+    #rail.choosing #bombBtn{display:none;}
+    #selectionPanel.choosing .sel-stats, #selectionPanel.choosing .sel-sub{display:none;}
+    .sel-actions .btn{font-size:13px; letter-spacing:.03em; padding:6px 7px; gap:4px;}
+    .sel-head canvas{width:32px; height:32px;}
+    .sel-close{width:34px; height:34px;}
+    .mode-btn{min-height:32px; font-size:11px; letter-spacing:0;}
     #forgeBtn{min-height:36px;}
     .wp-chip{min-height:24px; font-size:11px;}
     .wp-chip canvas{width:22px; height:22px;}
@@ -1059,7 +1067,7 @@ const TOWER_TYPES = {
   schleuderer: { name:'Schleuderer', cost:50, kind:'shooter', color:'#E6B04A', dmgType:'physisch',
     levels:[ {dmg:8,range:120,rate:1.4}, {dmg:14,range:120,rate:1.7,upgradeCost:40}, {dmg:22,range:140,rate:2.0,upgradeCost:70},
       {dmg:38,range:150,rate:2.3,upgradeCost:260, title:'Scharfschleuder', desc:'Mehr Schaden pro Schuss.'} ],
-    alt4:{dmg:24,range:150,rate:2.3,multi:2,upgradeCost:260, title:'Zwillingsschleuder', desc:'Trifft 2 Ziele zugleich. Bricht Schilde schnell.'} },
+    alt4:{dmg:24,range:150,rate:2.3,multi:2,upgradeCost:260, title:'Doppelschleuder', desc:'Trifft 2 Ziele zugleich. Bricht Schilde schnell.'} },
   frostturm: { name:'Frostturm', cost:90, kind:'shooter', slow:true, color:'#62D8CF', dmgType:'frost',
     levels:[ {dmg:4,range:110,rate:1.0,slowPct:0.40,slowDur:1.5}, {dmg:6,range:110,rate:1.0,slowPct:0.50,slowDur:1.5,upgradeCost:60}, {dmg:9,range:130,rate:1.0,slowPct:0.60,slowDur:2.0,upgradeCost:100},
       {dmg:16,range:140,rate:1.0,slowPct:0.72,slowDur:2.5,upgradeCost:240, title:'Tiefkühler', desc:'Bremst ein Ziel um 72 %.'} ],
@@ -1070,7 +1078,7 @@ const TOWER_TYPES = {
     alt4:{childHp:52,interval:2.0,maxActive:5,impSplash:50,upgradeCost:320, title:'Sprengofen', desc:'Wichte explodieren und treffen alle Gegner im Umkreis.'} },
   kanone: { name:'Kanone', cost:150, kind:'shooter', splash:true, color:'#8C97A8', dmgType:'physisch', groundOnly:true,
     levels:[ {dmg:25,range:130,rate:0.6,splashRadius:50}, {dmg:38,range:130,rate:0.6,splashRadius:60,upgradeCost:100}, {dmg:55,range:130,rate:0.8,splashRadius:75,upgradeCost:160},
-      {dmg:95,range:130,rate:0.95,splashRadius:95,upgradeCost:340, title:'Belagerungskanone', desc:'Größte Fläche, höchster Schaden.'} ],
+      {dmg:95,range:130,rate:0.95,splashRadius:95,upgradeCost:340, title:'Bombarde', desc:'Größte Fläche, höchster Schaden.'} ],
     alt4:{dmg:75,range:140,rate:0.95,splashRadius:60,pierce:true,upgradeCost:340, title:'Panzerbrecher', desc:'Ignoriert Panzerung und zerschlägt Schilde.'} },
   magier: { name:'Magier', cost:170, kind:'shooter', slow:true, color:'#B79BFF', dmgType:'arkan',
     levels:[ {dmg:14,range:140,rate:1.2,slowPct:0.25,slowDur:1.0}, {dmg:20,range:140,rate:1.2,slowPct:0.35,slowDur:1.0,upgradeCost:110}, {dmg:28,range:160,rate:1.2,slowPct:0.45,slowDur:1.0,chain:true,upgradeCost:180},
@@ -2355,6 +2363,11 @@ function fillGameOverStats(){
   dom.statKohle.textContent = state.totalKohleEarned;
   dom.statTime.textContent = fmtTime(state.playTime);
   renderHighscoreSection();
+  /* Der Loop steht nach Spielende - Wellen-Feld und Kopfzeile hier einmal nachziehen,
+     sonst bleibt hinter dem Modal ein aktiver Start-Knopf stehen (Playtest-Befund 7). */
+  updateWaveBarUI();
+  updateTopbarUI();
+  clearModes();
 }
 function triggerDefeat(){
   state.gameEnded = true; state.waveActive = false;
@@ -4211,6 +4224,7 @@ function syncSelectionPanel(){
   const tw = state.towers.find(t => t.id === state.selectedTowerId);
   dom.rail.classList.toggle('has-selection', !!tw);
   if (!tw){
+    dom.rail.classList.remove('choosing');
     dom.selectionPanel.classList.remove('show');
     dom.selectionPanel.innerHTML = '';
     return;
@@ -4271,6 +4285,7 @@ function syncSelectionPanel(){
     '</div>';
   dom.selectionPanel.querySelector('.sel-head').prepend(towerIcon(tw.type, 38, tw.level));
   dom.selectionPanel.classList.toggle('choosing', choosing);
+  dom.rail.classList.toggle('choosing', choosing);
 
   dom.selectionPanel.classList.add('show');
   $('selCloseBtn').addEventListener('click', () => { state.selectedTowerId = null; syncSelectionPanel(); });
@@ -4485,10 +4500,10 @@ function syncBuildInfo(){
   let html = '';
   const touch = state.effectiveTouch;
   if (state.bombArmed){
-    html = '<b>Bombe</b> · ' + (touch ? 'Finger aufs Feld legen, zielen, loslassen.' : 'Ziel anklicken. Esc bricht ab.');
+    html = '<b>Bombe</b> · ' + (touch ? 'Finger aufs Feld, zielen, loslassen.' : 'Ziel anklicken. Esc bricht ab.');
   } else if (state.selectedBuildType){
     html = '<b>' + TOWER_TYPES[state.selectedBuildType].name + '</b> · ' + TOWER_ROLE[state.selectedBuildType] + ' ' +
-      (touch ? 'Finger auf ein helles Feld legen, loslassen.' : 'Helles Feld anklicken.');
+      (touch ? 'Finger aufs Feld, ziehen, loslassen.' : 'Helles Feld anklicken.');
   }
   setHtmlIfChanged(dom.buildInfo, html);
   dom.buildInfo.classList.toggle('show', !!html);
