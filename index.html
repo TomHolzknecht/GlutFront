@@ -488,6 +488,28 @@
   .guide-row p{margin:0; font-size:13px; line-height:1.45; color:var(--ink-muted);}
   .guide-row .tag{display:inline-block; font-family:var(--font-num); font-size:11px; font-weight:700; background:var(--ink); color:var(--paper); border-radius:3px; padding:1px 5px; margin:0 4px 2px 0;}
   .guide-steps{margin:0 0 10px; padding-left:20px;}
+  .new-dot{margin-left:auto; background:var(--ink); color:var(--paper); border-radius:3px; padding:2px 6px; font-family:var(--font-num); font-size:11px; letter-spacing:0; text-transform:none; font-weight:700;}
+  .new-dot[hidden]{display:none;}
+  .cl-entry{border-bottom:1px solid rgba(14,11,9,.25);}
+  .cl-entry summary{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:2px 10px; align-items:baseline; padding:10px 0; min-height:44px; cursor:pointer; list-style:none;}
+  .cl-entry summary::-webkit-details-marker{display:none;}
+  .cl-entry summary::after{content:'+'; font-family:var(--font-num); font-weight:700; width:1.2em; text-align:center;}
+  .cl-entry[open] summary::after{content:'–';}
+  .cl-date{font-family:var(--font-num); font-size:12px; color:var(--ink-muted); white-space:nowrap;}
+  .cl-title{font-family:var(--font-display); font-stretch:75%; font-weight:800; font-size:17px; line-height:1.3; letter-spacing:.04em; text-transform:uppercase;}
+  .cl-count{font-size:12px; color:var(--ink-muted); white-space:nowrap;}
+  .cl-body{padding:0 0 14px;}
+  .cl-body ul{margin:0 0 10px; padding-left:20px; font-size:14px; line-height:1.5;}
+  .cl-body li{margin-bottom:4px; max-width:70ch;}
+  .cl-comments .section-label{margin-top:12px;}
+  .cm-list{list-style:none; margin:0 0 10px; padding:0; max-height:220px; overflow-y:auto;}
+  .cm-list li{padding:6px 0; border-bottom:1px solid rgba(14,11,9,.15); margin:0;}
+  .cm-head{display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--ink-muted);}
+  .cm-head b{color:var(--ink); font-family:var(--font-num);}
+  .cm-list p{margin:2px 0 0; font-size:14px; line-height:1.4; overflow-wrap:anywhere;}
+  .cm-form textarea{min-height:64px; resize:vertical;}
+  .cm-status:empty{display:none;}
+  @media (max-width:560px){ .cl-entry summary{grid-template-columns:minmax(0,1fr) auto;} .cl-date{grid-column:1 / -1;} .cl-count{display:none;} }
   .forge-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(14,11,9,.25);}
   .forge-row h3{margin:0 0 2px; font-family:var(--font-display); font-stretch:75%; font-weight:800; font-size:17px; letter-spacing:.05em; text-transform:uppercase;}
   .forge-row p{margin:0; font-size:13px; line-height:1.4; color:var(--ink-muted);}
@@ -511,6 +533,7 @@
         <button class="btn btn-primary start-menu-btn" id="openMapSelectBtn"><i data-ic="map"></i>Karte wählen</button>
         <button class="btn start-menu-btn" id="openTutorialBtn"><i data-ic="cap"></i>Tutorial<small>für den Einstieg</small></button>
         <button class="btn start-menu-btn" id="openGuideBtn"><i data-ic="book"></i>Anleitung</button>
+        <button class="btn start-menu-btn" id="openChangelogBtn"><i data-ic="news"></i>Neuigkeiten<span class="new-dot" id="newDot" hidden>neu</span></button>
         <button class="btn start-menu-btn" id="openLeaderboardBtn"><i data-ic="trophy"></i>Bestenlisten</button>
         <button class="btn start-menu-btn" id="startSettingsBtn"><i data-ic="gear"></i>Einstellungen</button>
       </nav>
@@ -703,6 +726,18 @@
   </div>
 </div>
 
+<!-- Neuigkeiten / Changelog mit Kommentaren -->
+<div class="modal-overlay" id="changelogModal">
+  <div class="modal-card modal-card-wide">
+    <h2 class="modal-title">Neuigkeiten</h2>
+    <p class="modal-sub">Was sich im Spiel geändert hat. Klick einen Eintrag an, dann siehst du die Details und kannst kommentieren.</p>
+    <div id="changelogBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="closeChangelogBtn">Fertig</button>
+    </div>
+  </div>
+</div>
+
 <!-- Schmiedewerk (nur Endlos-Modus) -->
 <div class="modal-overlay" id="forgeModal">
   <div class="modal-card">
@@ -753,7 +788,7 @@ const WAVE_AUTOSTART_SECONDS = 15;
 const FEEDBACK_ENDPOINT = "https://formspree.io/f/mwvgyglj";
 /* Versionskennung fuer Feedback-Mails (Branch feedback-context, 092726) - von Hand
    hochzaehlen bei sichtbaren Aenderungen, kein Build-Tooling noetig. */
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.2';
 const TUTORIAL_MAP_KEY = 'tutorial'; // Schluessel der Tutorial-Karte in MAPS, siehe Feedback 30
 
 /* Schwierigkeitsgrad koppelt Kartengeometrie UND Wellen-Formel (siehe
@@ -4408,6 +4443,7 @@ const ICONS = {
   sell: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M14.5 9.6c-.6-.8-1.5-1.2-2.5-1.2-1.4 0-2.5.8-2.5 1.9 0 2.6 5 1.2 5 3.8 0 1.1-1.1 1.9-2.5 1.9-1 0-1.9-.4-2.5-1.2"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  news: '<path d="M5 4h11l3 3v13H5zM8 10h8M8 14h8M8 17h5"/>',
   gem: '<path d="M6 4h12l4 5-10 11L2 9zM2 9h20M9 4l-2 5 5 11 5-11-2-5"/>',
   target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"' + ICON_FILL + '/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
   anvil: '<path d="M3 8h13v2c2.5 0 4.5-.8 5.5-2 0 3-2 5.5-5.5 5.5h-2l1.5 4h2v2H7v-2h2l1.5-4C7 13.5 4 12 3 8z"' + ICON_FILL + '/>'
@@ -5364,6 +5400,196 @@ function syncForgeBtn(){
 }
 
 /* =========================================================
+   NEUIGKEITEN / CHANGELOG MIT KOMMENTAREN (Overhaul v3.2)
+   Die Eintraege bis 09.2026 stammen aus dem Entwicklungs-Log im Vault
+   (SPiele/Feedback.md, Abschnitte 20 bis 30, und GLUTFRONT-Balance-Aenderungen.md),
+   die Daten aus dem Git-Verlauf. Sie sind fuer Spieler umformuliert, ohne Code-Begriffe.
+   Neuer Eintrag = neues Objekt GANZ OBEN in CHANGELOG. Die id muss eindeutig und stabil
+   sein: an ihr haengen die Kommentare in der Datenbank.
+   Kommentare nutzen dasselbe Supabase-Projekt wie die Bestenliste (ONLINE), Tabelle
+   "comments", Einrichtung siehe README. Ohne Tabelle oder ohne Internet bleibt die Seite
+   lesbar, nur das Kommentarfeld meldet den Grund.
+   ========================================================= */
+const CHANGELOG = [
+  { id:'2026-11-10-v32', date:'10.11.2026', version:'v3.2', title:'Neuigkeiten und Kommentare', items:[
+    'Neue Seite „Neuigkeiten" im Hauptmenü. Hier steht, was sich im Spiel geändert hat.',
+    'Zu jedem Eintrag kannst du einen Kommentar schreiben. Alle Spieler sehen ihn.',
+    'Ein Punkt „neu" im Menü zeigt, wenn es etwas Neues gibt.' ] },
+  { id:'2026-11-10-v31', date:'10.11.2026', version:'v3.1', title:'Schadenszähler, Regionen, weltweite Liste', items:[
+    'Jeder Turm zählt Schaden und besiegte Gegner. Am Rundenende zeigt eine Rangliste die stärksten Türme.',
+    '4 Regionen mit eigener Optik und eigener Musik: Kohleflöz, Pilzgrund, Kristallgrotte, Glutschlund.',
+    'Weltweite Bestenliste. Rekorde, die du offline erspielst, warten in einer Warteschlange und gehen später raus.',
+    'Endlos-Modus: Die Gegner werden ab Welle 21 zäher und schneller. Um Welle 80 hält auch die beste Verteidigung nicht mehr.',
+    'Höchstens 3 Drachen pro Bosswelle.' ] },
+  { id:'2026-11-09-v3', date:'09.11.2026', version:'v3', title:'Overhaul: neue Optik, Handy-Steuerung, neue Gegner', items:[
+    'Neue Optik „Glutstich": Plakat-Menü, helle Bedienflächen, gezeichnete Türme und Gegner.',
+    'Handy: Finger aufs Feld, ziehen, loslassen. Du siehst vorher Vorschau und Reichweite. Verkaufen braucht zwei Tipps.',
+    '4 neue Gegner: Kohlenkäfer (Schwarm), Schamane (heilt), Schildwache (Schild), Brutmutter (zerfällt in Brut). Fledermäuse fliegen jetzt.',
+    'Jede Welle hat ein Thema. Im Endlos-Modus wechselt alle 10 Wellen die Ära.',
+    'Wellenvorschau, Zielmodus pro Turm und Fokus-Markierung per Antippen.',
+    'Stufe 4: Du wählst bei jedem Turm einen von zwei Wegen.',
+    'Schmiedewerk im Endlos-Modus: Mit Kohle kaufst du dauerhafte Verbesserungen.',
+    'Anleitung im Spiel statt langem Text auf dem Startbildschirm.' ] },
+  { id:'2026-09-29', date:'29.09.2026', title:'Fix: Kartenauswahl auf dem Handy', items:[
+    'Im Hochformat ließ sich die Kartenauswahl nicht erreichen. Jetzt scrollt sie.' ] },
+  { id:'2026-09-27', date:'27.09.2026', title:'Neue Musik und Rundenbewertung', items:[
+    'Die Stollen-Musik passt sich an: ruhig beim Bauen, dichter im Kampf, dunkel bei Bossen.',
+    'Detailreichere Grafik. Die Schienen laufen in Kurven parallel und bis zum Kartenrand.',
+    'Am Rundenende kannst du die Runde mit 1 bis 5 Sternen bewerten.',
+    'Das Feedback-Formular schickt Karte und Welle automatisch mit.' ] },
+  { id:'2026-08-28', date:'28.08.2026', title:'Tutorial und sichtbare Kohle', items:[
+    'Neue Tutorial-Karte „Schmiedeschule" mit 9 Wellen und Hinweisen, wann welche Mechanik wichtig wird.',
+    'Gegner tragen ihre Kohle sichtbar im Rucksack. Beim Tod fällt sie heraus und fliegt zur Kohle-Anzeige.' ] },
+  { id:'2026-07-31', date:'31.07.2026', title:'Zwei Fehler behoben', items:[
+    'Bei Welle 20 erschien „Sieg!", obwohl die Leben schon auf 0 standen. Die Niederlage hat jetzt Vorrang.',
+    'Neue Besucher sahen fremde Einträge in der Bestenliste. Die lokale Liste wurde dafür einmalig zurückgesetzt.' ] },
+  { id:'2026-07-30', date:'30.07.2026', title:'Endlos-Modus, Paragon, Resistenzen', items:[
+    'Nach Welle 20 kannst du im Endlos-Modus weiterspielen. Das Turmlimit ist dort aufgehoben.',
+    'Bis zu 5 Türme dürfen gleichzeitig auf Stufe 4 stehen (vorher 3).',
+    'Paragon: 3 Türme desselben Typs auf Stufe 4 verschmelzen zu einem viel stärkeren Turm.',
+    'Zwei neue Gegner im Endlos-Modus: Salamander (immun gegen Feuer) und Gepanzerter (mindert Schaden stark). Eine einzige Turmsorte reicht nicht mehr.' ] },
+  { id:'2026-07-29', date:'29.07.2026', title:'Balance, Bombe, Feedback', items:[
+    'Stufe 4 für alle Türme. Der Sprung ist größer als bei den Stufen davor.',
+    'Bombe: 200 Kohle, trifft einen großen Kreis. Sie ist eine Kohle-Senke und begrenzt pro Spiel.',
+    'Das Turmlimit gilt jetzt pro Karte statt pro Schwierigkeitsgrad. Geröllfelder sperren die stärksten Bauplätze.',
+    'Feedback-Formular im Spiel.' ] },
+  { id:'2026-07-22', date:'22.07.2026', title:'Erste Veröffentlichung', items:[
+    'GLUTFRONT erscheint auf GitHub Pages: Tower-Defense im Kohlestollen mit mehreren Karten, Türmen und Bestenlisten.',
+    'Kurz danach: Das Querformat-Layout für das Handy ist repariert.' ] }
+];
+
+const CHANGELOG_SEEN_KEY = 'glutfront_changelog_seen';
+const COMMENT_NAME_KEY = 'glutfront_comment_name';
+const COMMENT_LAST_KEY = 'glutfront_comment_last';
+const COMMENT_COOLDOWN_MS = 30000;
+const COMMENT_MAX = 300;
+function lsGet(key){ try { return localStorage.getItem(key); } catch(e){ return null; } }
+function lsSet(key, value){ try { localStorage.setItem(key, value); } catch(e){ /* privater Modus */ } }
+
+/* Punkt "neu" am Menue-Knopf, solange der neueste Eintrag noch nicht geoeffnet wurde */
+function updateNewDot(){
+  const dot = $('newDot');
+  if (dot) dot.hidden = lsGet(CHANGELOG_SEEN_KEY) === CHANGELOG[0].id;
+}
+
+function commentsStatusText(res){
+  if (res && res.status === 404) return 'Kommentare sind noch nicht eingerichtet.';
+  if (navigator.onLine === false) return 'Kein Internet.';
+  return 'Kommentare sind gerade nicht erreichbar.';
+}
+function commentsUrl(query){ return ONLINE.url + '/rest/v1/comments?' + query; }
+
+/* Anzahl der Kommentare je Eintrag: eine Abfrage fuer alle, gezaehlt im Browser */
+async function fetchCommentCounts(){
+  if (!onlineEnabled()) return;
+  try {
+    const res = await fetch(commentsUrl('select=entry&limit=1000'), { headers: onlineHeaders() });
+    if (!res.ok) return;
+    const rows = await res.json();
+    const counts = {};
+    rows.forEach(r => { counts[r.entry] = (counts[r.entry] || 0) + 1; });
+    document.querySelectorAll('.cl-entry').forEach(d => {
+      const n = counts[d.dataset.id] || 0;
+      d.querySelector('.cl-count').textContent = n ? n + (n === 1 ? ' Kommentar' : ' Kommentare') : '';
+    });
+  } catch(e){ /* Zaehler sind nur Komfort */ }
+}
+
+async function loadComments(entryId, listEl, statusEl){
+  if (!onlineEnabled()){ statusEl.textContent = 'Kommentare sind nicht eingerichtet.'; return; }
+  statusEl.textContent = 'Lade Kommentare…';
+  try {
+    const res = await fetch(commentsUrl('select=name,text,created_at&entry=eq.' + encodeURIComponent(entryId) + '&order=created_at.desc&limit=30'), { headers: onlineHeaders() });
+    if (!res.ok){ statusEl.textContent = commentsStatusText(res); return; }
+    const rows = await res.json();
+    listEl.innerHTML = '';
+    rows.forEach(r => {
+      const li = document.createElement('li');
+      const head = document.createElement('div'); head.className = 'cm-head';
+      const who = document.createElement('b'); who.textContent = r.name;
+      const when = document.createElement('span');
+      when.textContent = new Date(r.created_at).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      head.append(who, when);
+      const body = document.createElement('p'); body.textContent = r.text; // textContent: kein HTML aus fremden Texten
+      li.append(head, body);
+      listEl.appendChild(li);
+    });
+    statusEl.textContent = rows.length ? '' : 'Noch kein Kommentar. Schreib den ersten.';
+  } catch(e){ statusEl.textContent = commentsStatusText(null); }
+}
+
+async function postComment(entryId, form, listEl, statusEl){
+  const text = form.elements.text.value.trim();
+  const name = (form.elements.name.value.trim() || 'Anonym').slice(0, 16);
+  const btn = form.querySelector('button[type="submit"]');
+  if (!text){ statusEl.textContent = 'Bitte einen Text eingeben.'; return; }
+  const wait = COMMENT_COOLDOWN_MS - (Date.now() - (+lsGet(COMMENT_LAST_KEY) || 0));
+  if (wait > 0){ statusEl.textContent = 'Bitte warte noch ' + Math.ceil(wait / 1000) + ' Sekunden.'; return; }
+  if (!onlineEnabled()){ statusEl.textContent = 'Kommentare sind nicht eingerichtet.'; return; }
+  btn.disabled = true; statusEl.textContent = 'Sende…';
+  try {
+    const res = await fetch(commentsUrl(''), {
+      method: 'POST', headers: onlineHeaders({ 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ entry: entryId, name, text: text.slice(0, COMMENT_MAX) })
+    });
+    if (res.ok){
+      lsSet(COMMENT_LAST_KEY, String(Date.now()));
+      lsSet(COMMENT_NAME_KEY, name === 'Anonym' ? '' : name);
+      form.elements.text.value = '';
+      await loadComments(entryId, listEl, statusEl);
+      fetchCommentCounts();
+    } else {
+      statusEl.textContent = res.status === 404 ? commentsStatusText(res) : 'Der Kommentar wurde abgelehnt.';
+    }
+  } catch(e){
+    statusEl.textContent = 'Kein Internet. Dein Text bleibt stehen. Versuch es später nochmal.';
+  }
+  btn.disabled = false;
+}
+
+function buildChangelog(){
+  const body = $('changelogBody');
+  body.innerHTML = '';
+  CHANGELOG.forEach((entry, idx) => {
+    const d = document.createElement('details');
+    d.className = 'cl-entry'; d.dataset.id = entry.id;
+    const sum = document.createElement('summary');
+    sum.innerHTML = '<span class="cl-date"></span><span class="cl-title"></span><span class="cl-count"></span>';
+    sum.querySelector('.cl-date').textContent = entry.date + (entry.version ? ' · ' + entry.version : '');
+    sum.querySelector('.cl-title').textContent = entry.title;
+    d.appendChild(sum);
+    const inner = document.createElement('div'); inner.className = 'cl-body';
+    const ul = document.createElement('ul');
+    entry.items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    inner.appendChild(ul);
+    const box = document.createElement('div'); box.className = 'cl-comments';
+    box.innerHTML = '<div class="section-label">Kommentare</div><p class="feedback-status cm-status" aria-live="polite"></p><ul class="cm-list"></ul>' +
+      '<form class="cm-form"><textarea name="text" maxlength="' + COMMENT_MAX + '" placeholder="Dein Kommentar…" aria-label="Dein Kommentar"></textarea>' +
+      '<input type="text" name="name" maxlength="16" placeholder="Name (freiwillig)" aria-label="Name (freiwillig)" autocomplete="nickname">' +
+      '<button type="submit" class="btn">Kommentar senden</button></form>';
+    inner.appendChild(box);
+    d.appendChild(inner);
+    const listEl = box.querySelector('.cm-list'), statusEl = box.querySelector('.cm-status'), form = box.querySelector('.cm-form');
+    form.elements.name.value = lsGet(COMMENT_NAME_KEY) || '';
+    form.addEventListener('submit', (e) => { e.preventDefault(); postComment(entry.id, form, listEl, statusEl); });
+    d.addEventListener('toggle', () => {
+      if (d.open && !d.dataset.loaded){ d.dataset.loaded = '1'; loadComments(entry.id, listEl, statusEl); }
+    });
+    if (idx === 0) d.open = true;
+    body.appendChild(d);
+  });
+}
+function openChangelogModal(){
+  buildChangelog();
+  $('changelogModal').classList.add('show');
+  $('changelogModal').scrollTop = 0;
+  lsSet(CHANGELOG_SEEN_KEY, CHANGELOG[0].id);
+  updateNewDot();
+  fetchCommentCounts();
+}
+function closeChangelogModal(){ $('changelogModal').classList.remove('show'); }
+
+/* =========================================================
    EVENT-VERDRAHTUNG
    ========================================================= */
 const SPEED_STEPS = [1, 1.5, 2];
@@ -5397,6 +5623,8 @@ function wireEvents(){
   dom.guideFromSettingsBtn.addEventListener('click', () => { closeSettingsModal(); openGuideModal(); });
   dom.closeGuideBtn.addEventListener('click', closeGuideModal);
   $('forgeBtn').addEventListener('click', openForgeModal);
+  $('openChangelogBtn').addEventListener('click', openChangelogModal);
+  $('closeChangelogBtn').addEventListener('click', closeChangelogModal);
   document.querySelectorAll('input[name="lbScope"]').forEach(r => r.addEventListener('change', () => { if (r.checked) setLeaderboardScope(r.value); }));
   /* Warteschlange der Online-Bestenliste: senden, sobald wieder Internet da ist */
   window.addEventListener('online', flushPending);
@@ -5461,6 +5689,7 @@ function wireEvents(){
 function boot(){
   try {
     fillStaticIcons();
+    updateNewDot();
     dom.versionLabel.textContent = APP_VERSION;
     buildBuildMenu();
     applyControlMode();
