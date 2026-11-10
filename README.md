@@ -23,13 +23,45 @@ Die vollständige Anleitung steht im Spiel unter „Anleitung". Das Tutorial „
 - Bombe: 200 Kohle, 15 pro Spiel, 6 Sekunden Ladezeit, 25 % Kohle für Gegner, die durch sie sterben.
 - Wellenvorschau, Zielmodus pro Turm und Fokus-Markierung per Antippen.
 - Endlos-Modus nach Welle 20 mit Ären und dem Schmiedewerk als Kohle-Senke.
-- Bestenlisten je Karte, gespeichert im Browser (localStorage).
+- Schadenszähler pro Turm und Rangliste der stärksten Türme am Rundenende.
+- 4 Regionen mit eigener Optik und eigener Musik: Kohleflöz, Pilzgrund, Kristallgrotte, Glutschlund.
+- Bestenlisten je Karte, gespeichert im Browser (localStorage). Optional eine weltweite Liste, siehe unten.
 
 ## Steuerung
 
 - **Touch:** Turmkarte antippen, Finger aufs Spielfeld legen, auf das Feld ziehen, loslassen. Die Bombe funktioniert genauso.
 - **Maus und Tastatur:** Tasten 1–6 wählen einen Turm, B macht die Bombe scharf, Leertaste startet die Welle, P pausiert, M schaltet den Ton, Esc bricht ab.
 - Die Steuerung und der Ton lassen sich im Menü (Zahnrad) umstellen.
+
+## Online-Bestenliste (optional)
+
+Ohne Einrichtung bleibt die Bestenliste lokal. Neue Einträge landen trotzdem in einer Warteschlange und werden später gesendet.
+
+Die weltweite Liste nutzt eine Supabase-Tabelle. Das Spiel braucht dafür keinen eigenen Server.
+
+1. Lege auf supabase.com ein Projekt an.
+2. Führe im SQL-Editor dieses Skript aus:
+
+```sql
+create table scores (
+  id uuid primary key,
+  map text not null check (char_length(map) <= 20),
+  name text not null check (char_length(name) between 1 and 16),
+  wave int not null check (wave between 0 and 300),
+  kohle int not null check (kohle >= 0),
+  kills int,
+  time int,
+  version text,
+  created_at timestamptz default now()
+);
+alter table scores enable row level security;
+create policy "lesen" on scores for select using (true);
+create policy "eintragen" on scores for insert with check (true);
+```
+
+3. Trage in `index.html` bei `const ONLINE` die Projekt-URL (`url`) und den anon-Key (`key`) ein.
+
+Hinweis: Die Einträge kommen ungeprüft aus dem Browser. Wer will, kann falsche Werte senden. Für eine Liste unter Freunden reicht das. Löschen und Ändern erlaubt die Tabelle niemandem.
 
 ## Für Entwickler
 

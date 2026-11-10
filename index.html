@@ -356,7 +356,7 @@
        passt dann ohne Scrollen in 363 px Hoehe (gemessen bei 812 x 375). */
     #rail.has-selection #wavePreview{display:none;}
     #rail.choosing #bombBtn{display:none;}
-    #selectionPanel.choosing .sel-stats, #selectionPanel.choosing .sel-sub{display:none;}
+    #selectionPanel.choosing .sel-stats, #selectionPanel.choosing .sel-sub, #selectionPanel.choosing .sel-tally{display:none;}
     .sel-actions .btn{font-size:13px; letter-spacing:.03em; padding:6px 7px; gap:4px;}
     .sel-head canvas{width:32px; height:32px;}
     .sel-close{width:34px; height:34px;}
@@ -599,7 +599,12 @@
 <div class="modal-overlay" id="leaderboardModal">
   <div class="modal-card modal-card-wide">
     <h2 class="modal-title">Bestenlisten</h2>
-    <p class="modal-sub">Die besten 5 Läufe je Karte.</p>
+    <p class="modal-sub">Die besten Läufe je Karte.</p>
+    <div class="seg" id="lbScopeRow" style="display:none;">
+      <label class="seg-opt"><input type="radio" name="lbScope" value="local" checked>Dieses Gerät</label>
+      <label class="seg-opt"><input type="radio" name="lbScope" value="world">Weltweit</label>
+    </div>
+    <p class="feedback-status" id="lbStatus" aria-live="polite"></p>
     <div id="leaderboardBody"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="closeLeaderboardBtn">Fertig</button>
@@ -748,7 +753,7 @@ const WAVE_AUTOSTART_SECONDS = 15;
 const FEEDBACK_ENDPOINT = "https://formspree.io/f/mwvgyglj";
 /* Versionskennung fuer Feedback-Mails (Branch feedback-context, 092726) - von Hand
    hochzaehlen bei sichtbaren Aenderungen, kein Build-Tooling noetig. */
-const APP_VERSION = 'v3';
+const APP_VERSION = 'v3.1';
 const TUTORIAL_MAP_KEY = 'tutorial'; // Schluessel der Tutorial-Karte in MAPS, siehe Feedback 30
 
 /* Schwierigkeitsgrad koppelt Kartengeometrie UND Wellen-Formel (siehe
@@ -948,10 +953,24 @@ function endlessEra(n){
   return n > TOTAL_WAVES ? ENDLESS_ERAS[Math.floor((n - TOTAL_WAVES - 1) / 10) % ENDLESS_ERAS.length] : null;
 }
 
+/* ENDLOS-WAND (Overhaul v3.1): Ziel ist, dass auch eine voll ausgebaute Verteidigung mit
+   Paragons und Schmiedewerk um Welle 80 herum faellt. Die lineare HP-Kurve allein reichte
+   dafuer nicht: der Spieler waechst mit Feldausbau und Schmiedewerk schneller als linear.
+   Deshalb waechst die Gegner-HP ab Welle 21 zusaetzlich exponentiell (Zinseszins pro Welle).
+   Der Kohle-Lohn waechst weiter nur linear - irgendwann reicht er nicht mehr, um mitzuhalten.
+   Wellen 1-20 sind davon nicht betroffen. Der Wert ist per Bot-Lauf eingestellt. */
+const BALANCE = { endlessHpGrowth: 1.035, endlessSpeedPerWave: 0.003, bossLateCapWave: 40, maxBosses: 3 };
+
 function generateWave(n, tierCfg){
   const isBoss = isBossWave(n, tierCfg.bossInterval, TOTAL_WAVES);
-  const hpScale = 1 + (n-1)*tierCfg.hpScalePerWave;
-  const bossHpExtra = (isBoss && n >= 10) ? 1 + (n - 9) * bossLateBonusPerWave : 1;
+  const hpScale = (1 + (n-1)*tierCfg.hpScalePerWave) * Math.pow(BALANCE.endlessHpGrowth, Math.max(0, n - TOTAL_WAVES));
+  /* Der Boss-Zusatz waechst nur bis Welle bossLateCapWave. Ohne Deckel bestimmten im
+     Endlos-Modus allein die Bosswellen das Ende: 50 Wellen ohne Lebensverlust, dann der
+     Tod in einer einzigen Bosswelle. Mit Deckel traegt das allgemeine HP-Wachstum die
+     Wand, der Druck steigt ueber alle Wellen. */
+  const bossHpExtra = (isBoss && n >= 10) ? 1 + (Math.min(n, BALANCE.bossLateCapWave) - 9) * bossLateBonusPerWave : 1;
+  /* Gegner werden im Endlos-Modus langsam schneller (Endlos-Modus-Plan.md 1.2) */
+  const speedScale = 1 + Math.max(0, n - TOTAL_WAVES) * BALANCE.endlessSpeedPerWave;
   const rewardScale = 1 + (n-1)*tierCfg.rewardScalePerWave;
   /* Wellen seit Welle 20 (0 vor/an Welle 20) - laesst die Gegneranzahl im Endlos-Modus
      langsam weiterwachsen (Endlos-Modus-Plan.md Abschnitt 1.1). */
@@ -960,7 +979,9 @@ function generateWave(n, tierCfg){
   const add = (type, count, stagger, start) => { for (let i = 0; i < count; i++) list.push({ type, delay: (start || 0) + i*stagger }); };
   const era = endlessEra(n);
   if (isBoss){
-    add('boss', 1 + Math.floor(n/10), 3000, 1200);
+    /* Hoechstens maxBosses Drachen pro Welle. Vorher kamen in Welle 60 sieben Drachen zu je
+       5 Leben: kam die Gruppe durch, war die Runde in einem Schlag vorbei. */
+    add('boss', Math.min(BALANCE.maxBosses, 1 + Math.floor(n/10)), 3000, 1200);
     add('goblin', 3 + Math.floor(n/5), 700, 0);
     /* Begleitschutz ab Welle 10: Flieger zwingen zu Luftabwehr neben dem Boss-Fokus,
        ab Welle 15 heilt ein Schamane mit (den Boss nur schwach, siehe heal.bossPct). */
@@ -995,7 +1016,7 @@ function generateWave(n, tierCfg){
      sortiert sein. Vorher lagen die Typen hintereinander in der Liste und kamen
      dadurch nacheinander statt gemischt. */
   list.sort((a, b) => a.delay - b.delay);
-  return { wave:n, isBoss, hpScale, bossHpExtra, rewardScale, enemies:list, era };
+  return { wave:n, isBoss, hpScale, bossHpExtra, rewardScale, speedScale, enemies:list, era };
 }
 /* Zaehlt die Gegner einer Welle je Typ, in fester Reihenfolge - fuer die Wellenvorschau. */
 function summarizeWave(wave){
@@ -2303,7 +2324,7 @@ function spawnEnemy(type, parent, idx){
   state.enemies.push({
     id: state.nextEntityId++, type, name: base.name,
     hp: scaledHp, maxHp: scaledHp,
-    speed: base.speed, reward: Math.round(base.reward * wave.rewardScale),
+    speed: base.speed * (wave.speedScale || 1), reward: Math.round(base.reward * wave.rewardScale),
     livesCost: base.livesCost,
     wpIndex: parent ? parent.wpIndex : 0,
     x: parent ? parent.x : start.x, y: parent ? parent.y : start.y,
@@ -2410,12 +2431,124 @@ function renderHighscoreSection(){
 }
 
 /* =========================================================
-   BESTENLISTEN-MODAL: Uebersicht ueber alle 9 Karten, nach
-   Schwierigkeitsgrad gruppiert. Wird auch von der "gespielt"-Badge in der
-   Kartenauswahl mit einer Karte zum Hervorheben aufgerufen.
+   ONLINE-BESTENLISTE MIT WARTESCHLANGE (Overhaul v3.1)
+   Das Spiel bleibt eine einzelne Datei ohne eigenen Server. Die weltweite Liste liegt
+   deshalb in einer Supabase-Tabelle, die der Browser direkt per REST anspricht.
+   Ablauf:
+   1. Jeder gespeicherte Eintrag geht zuerst wie bisher in die lokale Liste (HIGHSCORE_KEY)
+      und zusaetzlich in eine Warteschlange (PENDING_KEY).
+   2. flushPending() schickt die Warteschlange ab, sobald Internet da ist: beim Start,
+      nach jedem Eintrag und beim Browser-Ereignis "online". Offline gespielte Rekorde
+      gehen so nicht verloren.
+   3. Jeder Eintrag traegt eine eigene id. Kommt derselbe Eintrag zweimal an (Antwort ging
+      verloren, neuer Versuch), ignoriert die Datenbank das Duplikat.
+   4. Ist das Bestenlisten-Fenster offen, laedt es die weltweite Liste alle
+      ONLINE.refreshSec Sekunden neu ("halb live").
+   Ohne Zugangsdaten in ONLINE bleibt alles lokal, die Warteschlange sammelt trotzdem.
+   Einrichtung: siehe README, Abschnitt "Online-Bestenliste". Der anon-Key ist dafuer
+   gedacht, oeffentlich im Code zu stehen - die Rechte regelt die Tabelle selbst.
    ========================================================= */
-function buildLeaderboardBody(){
+const ONLINE = { url:'', key:'', table:'scores', refreshSec:20, top:10 };
+const PENDING_KEY = 'glutfront_pending_scores_v1';
+const PENDING_MAX = 200;
+const onlineCache = {};   // mapKey -> Liste der weltweiten Top-Eintraege
+let onlineFetchedAt = 0, onlineError = '', flushing = false, lbScope = 'local', lbTimer = null;
+
+function onlineEnabled(){ return !!(ONLINE.url && ONLINE.key); }
+function onlineHeaders(extra){
+  return Object.assign({ 'apikey': ONLINE.key, 'Authorization': 'Bearer ' + ONLINE.key, 'Content-Type': 'application/json' }, extra || {});
+}
+function loadPending(){
+  try { const raw = localStorage.getItem(PENDING_KEY); return raw ? JSON.parse(raw) : []; }
+  catch(e){ return []; }
+}
+function savePending(list){
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(list.slice(-PENDING_MAX))); } catch(e){ /* privater Modus */ }
+}
+function newScoreId(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, ch => { const r = Math.random()*16|0; return (ch === 'x' ? r : (r & 3 | 8)).toString(16); });
+}
+/* Stellt einen Eintrag in die Warteschlange und versucht sofort zu senden. */
+function queueScore(mapKey, entry){
+  const list = loadPending();
+  list.push({ id: newScoreId(), map: mapKey, name: entry.name, wave: entry.wave, kohle: Math.round(entry.kohle),
+    kills: entry.kills, time: Math.round(entry.time), version: APP_VERSION });
+  savePending(list);
+  flushPending();
+}
+async function flushPending(){
+  if (!onlineEnabled() || flushing || navigator.onLine === false) return;
+  flushing = true;
+  try {
+    let list = loadPending();
+    while (list.length){
+      const item = list[0];
+      let res;
+      try {
+        res = await fetch(ONLINE.url + '/rest/v1/' + ONLINE.table + '?on_conflict=id', {
+          method: 'POST', headers: onlineHeaders({ 'Prefer': 'resolution=ignore-duplicates,return=minimal' }), body: JSON.stringify(item)
+        });
+      } catch(e){ break; } // kein Netz: spaeter erneut, Reihenfolge bleibt
+      if (res.ok || res.status === 409 || (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 403 && res.status !== 429)){
+        /* angenommen, Duplikat oder von der Datenbank als ungueltig abgelehnt: aus der
+           Schlange nehmen. Ein ungueltiger Eintrag wuerde sonst alle folgenden blockieren. */
+        list = loadPending().filter(x => x.id !== item.id);
+        savePending(list);
+      } else break; // Server- oder Rechteproblem: spaeter erneut
+    }
+  } finally {
+    flushing = false;
+    updateLeaderboardStatus();
+  }
+}
+async function fetchOnlineScores(){
+  if (!onlineEnabled()) return;
+  try {
+    const keys = Object.keys(MAPS);
+    const lists = await Promise.all(keys.map(k =>
+      fetch(ONLINE.url + '/rest/v1/' + ONLINE.table + '?select=name,wave,kohle&map=eq.' + encodeURIComponent(k) +
+        '&order=wave.desc,kohle.desc&limit=' + ONLINE.top, { headers: onlineHeaders() })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })));
+    keys.forEach((k, i) => { onlineCache[k] = Array.isArray(lists[i]) ? lists[i] : []; });
+    onlineFetchedAt = Date.now(); onlineError = '';
+  } catch(e){
+    onlineError = navigator.onLine === false ? 'Kein Internet.' : 'Die weltweite Liste ist gerade nicht erreichbar.';
+  }
+  if (dom.leaderboardModal.classList.contains('show') && lbScope === 'world') buildLeaderboardBody(lbFocusKey);
+  updateLeaderboardStatus();
+}
+function updateLeaderboardStatus(){
+  const el = $('lbStatus');
+  if (!el) return;
+  const waiting = loadPending().length;
+  let text;
+  if (!onlineEnabled()){
+    text = 'Die weltweite Liste ist noch nicht eingerichtet. Du siehst die Liste dieses Geräts.' +
+      (waiting ? ' ' + waiting + (waiting === 1 ? ' Eintrag ist' : ' Einträge sind') + ' für später vorgemerkt.' : '');
+  } else {
+    const parts = [];
+    if (lbScope === 'world'){
+      if (onlineError) parts.push(onlineError + (onlineFetchedAt ? ' Du siehst den letzten Stand.' : ''));
+      else if (onlineFetchedAt) parts.push('Stand ' + new Date(onlineFetchedAt).toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) + ' Uhr, neu alle ' + ONLINE.refreshSec + ' Sekunden.');
+      else parts.push('Lade die weltweite Liste…');
+    }
+    if (waiting) parts.push(waiting + (waiting === 1 ? ' Eintrag wartet' : ' Einträge warten') + ' auf Internet und ' + (waiting === 1 ? 'wird' : 'werden') + ' dann gesendet.');
+    text = parts.join(' ');
+  }
+  el.textContent = text;
+  el.className = 'feedback-status' + (onlineError && lbScope === 'world' ? ' error' : '');
+}
+
+/* =========================================================
+   BESTENLISTEN-MODAL: alle Karten, nach Schwierigkeitsgrad gruppiert. Wird auch vom
+   "Beste Welle"-Knopf in der Kartenauswahl mit einer Karte zum Hervorheben aufgerufen.
+   Umschalter "Dieses Gerät / Weltweit", sobald die Online-Liste eingerichtet ist.
+   ========================================================= */
+let lbFocusKey = null;
+function buildLeaderboardBody(focusMapKey){
   dom.leaderboardBody.innerHTML = '';
+  const world = lbScope === 'world' && onlineEnabled();
   TIER_ORDER.forEach(tierKey => {
     const tierCfg = DIFFICULTY_TIERS[tierKey];
     const section = document.createElement('div');
@@ -2424,31 +2557,47 @@ function buildLeaderboardBody(){
 
     Object.entries(MAPS).filter(([, def]) => def.tier === tierKey).forEach(([key, def]) => {
       const row = document.createElement('div');
-      row.className = 'lb-map-row';
+      row.className = 'lb-map-row' + (key === focusMapKey ? ' highlight' : '');
       row.dataset.map = key;
       row.innerHTML =
         '<div class="lb-map-head"><span class="lb-map-name">'+def.name+'</span></div>' +
         '<ol class="hs-list"></ol>';
       section.appendChild(row);
-      renderHsListInto(row.querySelector('.hs-list'), getMapHighscores(key));
+      renderHsListInto(row.querySelector('.hs-list'), world ? (onlineCache[key] || []) : getMapHighscores(key));
     });
 
     dom.leaderboardBody.appendChild(section);
   });
 }
+function setLeaderboardScope(scope){
+  lbScope = scope;
+  document.querySelectorAll('input[name="lbScope"]').forEach(r => { r.checked = r.value === scope; });
+  buildLeaderboardBody(lbFocusKey);
+  updateLeaderboardStatus();
+  if (scope === 'world') fetchOnlineScores();
+}
 function openLeaderboardModal(focusMapKey){
-  buildLeaderboardBody();
+  lbFocusKey = focusMapKey || null;
+  $('lbScopeRow').style.display = onlineEnabled() ? '' : 'none';
+  if (!onlineEnabled()) lbScope = 'local';
+  document.querySelectorAll('input[name="lbScope"]').forEach(r => { r.checked = r.value === lbScope; });
+  buildLeaderboardBody(lbFocusKey);
+  updateLeaderboardStatus();
   dom.leaderboardModal.classList.add('show');
   if (focusMapKey){
     const row = dom.leaderboardBody.querySelector('[data-map="'+focusMapKey+'"]');
-    if (row){
-      row.classList.add('highlight');
-      setTimeout(() => row.scrollIntoView({ block:'center', behavior:'smooth' }), 30);
-    }
+    if (row) setTimeout(() => row.scrollIntoView({ block:'center', behavior:'smooth' }), 30);
+  }
+  if (onlineEnabled()){
+    flushPending();
+    if (lbScope === 'world') fetchOnlineScores();
+    clearInterval(lbTimer);
+    lbTimer = setInterval(() => { if (lbScope === 'world' && !document.hidden) fetchOnlineScores(); }, ONLINE.refreshSec * 1000);
   }
 }
 function closeLeaderboardModal(){
   dom.leaderboardModal.classList.remove('show');
+  clearInterval(lbTimer); lbTimer = null;
 }
 
 /* Die 5 Tuerme mit dem meisten Schaden, mit Balken im Verhaeltnis zum besten Turm.
@@ -5122,10 +5271,12 @@ function renderGuide(tabId){
       '<div class="section-label">Zielmodus und Markierung</div>' +
       '<p>Jeder schießende Turm hat einen Zielmodus: Vorn, Stark, Schwach oder Nah. Du stellst ihn im Turm-Panel ein.</p>' +
       '<p>Tippe einen Gegner an, dann bekommt er eine Markierung. Alle Türme in Reichweite schießen zuerst auf ihn, auch die Glutwichte laufen zu ihm. Ein zweiter Tipp löscht die Markierung.</p>' +
+      '<div class="section-label">Schadenszähler</div>' +
+      '<p>Jeder Turm zählt seinen Schaden und seine besiegten Gegner. Du siehst beides im Turm-Panel, dazu den Anteil am Gesamtschaden. Am Ende der Runde zeigt eine Rangliste die stärksten Türme.</p>' +
       '<div class="section-label">Bosswellen</div>' +
       '<p>Auf Mittel und Schwer kommt der Drache in Welle 5, 10, 15 und 20. Auf Leicht kommt er in Welle 6, 12 und 20.</p>' +
       '<div class="section-label">Endlos-Modus und Schmiedewerk</div>' +
-      '<p>Nach Welle 20 kannst du weiterspielen. Das Turmlimit ist dann aufgehoben. Alle 10 Wellen wechselt die Ära: Schwarm, Flieger, Panzer, Heiler. Jede Ära verlangt einen anderen Umbau.</p>' +
+      '<p>Nach Welle 20 kannst du weiterspielen. Das Turmlimit ist dann aufgehoben. Alle 10 Wellen wechselt die Ära: Schwarm, Flieger, Panzer, Heiler. Jede Ära verlangt einen anderen Umbau. Die Gegner werden mit jeder Welle zäher und schneller. Um Welle 80 hält auch die beste Verteidigung nicht mehr.</p>' +
       '<p>Im Endlos-Modus öffnet das Schmiedewerk. Dort kaufst du dauerhafte Verbesserungen für alle Türme und neue Leben. Jeder Kauf macht den nächsten teurer.</p>';
   } else if (tabId === 'controls'){
     body.innerHTML =
@@ -5246,6 +5397,9 @@ function wireEvents(){
   dom.guideFromSettingsBtn.addEventListener('click', () => { closeSettingsModal(); openGuideModal(); });
   dom.closeGuideBtn.addEventListener('click', closeGuideModal);
   $('forgeBtn').addEventListener('click', openForgeModal);
+  document.querySelectorAll('input[name="lbScope"]').forEach(r => r.addEventListener('change', () => { if (r.checked) setLeaderboardScope(r.value); }));
+  /* Warteschlange der Online-Bestenliste: senden, sobald wieder Internet da ist */
+  window.addEventListener('online', flushPending);
   $('closeForgeBtn').addEventListener('click', closeForgeModal);
   document.querySelectorAll('input[name="controlMode"]').forEach(r => {
     r.addEventListener('change', () => { if (r.checked){ state.controlMode = r.value; applyControlMode(); } });
@@ -5293,6 +5447,8 @@ function wireEvents(){
     });
     dom.hsNewEntryRow.style.display = 'none';
     renderHsList(list);
+    /* zusaetzlich in die Warteschlange fuer die weltweite Liste (siehe ONLINE) */
+    queueScore(state.mapKey, { name, wave: state.waveNumber, kohle: state.totalKohleEarned, kills: state.totalKills, time: state.playTime });
   });
   dom.hsNameInput.addEventListener('keydown', (evt) => {
     if (evt.key === 'Enter'){ evt.preventDefault(); dom.hsSaveBtn.click(); }
@@ -5314,6 +5470,7 @@ function boot(){
     /* Browser erlauben Audio erst nach einer Nutzeraktion - die Menue-Musik startet
        deshalb beim ersten Klick/Tipp irgendwo auf der Seite (Branch redesign). */
     document.addEventListener('pointerdown', () => { Sound.unlock(); Sound.startMusic(); }, { once:true });
+    flushPending();
     requestAnimationFrame(mainLoop);
   } catch (e) {
     console.error('Start fehlgeschlagen:', e);
