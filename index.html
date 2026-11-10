@@ -296,6 +296,13 @@
   .sel-stats{display:grid; grid-template-columns:1fr 1fr; gap:1px 8px; font-size:11px; color:var(--ink-muted);}
   .sel-stats b{font-family:var(--font-num); font-size:13px; color:var(--ink); font-variant-numeric:tabular-nums;}
   .sel-note{font-size:11px; line-height:1.35; color:var(--ink-muted);}
+  .sel-tally{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-muted); border-top:1px solid rgba(14,11,9,.25); padding-top:5px;}
+  .sel-tally b{font-family:var(--font-num); font-size:13px; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .rank-list{list-style:none; margin:0 0 14px; padding:0;}
+  .rank-list li{display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:8px; align-items:center; padding:4px 0; border-bottom:1px solid rgba(14,11,9,.2); font-size:13px;}
+  .rank-list canvas{width:30px; height:30px;}
+  .rank-list .bar{height:6px; background:var(--ember); border:1px solid var(--ink); border-radius:2px; margin-top:3px;}
+  .rank-list b{font-family:var(--font-num); font-variant-numeric:tabular-nums;}
   .mode-row{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); border:2px solid var(--ink); border-radius:4px; overflow:hidden;}
   .mode-btn{
     background:none; border:none; border-left:2px solid var(--ink); color:var(--ink); cursor:pointer; padding:0; min-height:34px;
@@ -627,6 +634,10 @@
       <button class="btn btn-primary" id="continueEndlessBtn" style="display:none;"><i data-ic="play"></i>Endlos weiterspielen</button>
       <button class="btn btn-primary" id="retryBtn">Nochmal versuchen</button>
       <button class="btn" id="backToMapsBtn">Zum Hauptmenü</button>
+    </div>
+    <div id="towerRankSection">
+      <div class="section-label">Stärkste Türme dieser Runde</div>
+      <ol class="rank-list" id="towerRankList"></ol>
     </div>
     <div id="highscoreSection">
       <div class="section-label">Bestenliste · <span id="hsMapName"></span></div>
@@ -1163,6 +1174,8 @@ function fuseParagon(id){
   state.kohle -= cost;
   const otherIds = new Set(others.map(o => o.id));
   state.towers = state.towers.filter(t => !otherIds.has(t.id)); // Zellen werden dadurch wieder frei
+  /* Der Paragon erbt den Schadenszaehler der verschmolzenen Tuerme */
+  others.forEach(o => { tw.dmgDone = (tw.dmgDone || 0) + (o.dmgDone || 0); tw.kills = (tw.kills || 0) + (o.kills || 0); });
   const base = towerLevelStats(tw, def); // Variante des gewaehlten Turms bestimmt den Paragon
   const stats = {};
   for (const key of Object.keys(base)){
@@ -1281,7 +1294,28 @@ const Sound = (() => {
      - Hoehlen-Ambience: Wind, Wassertropfen, ferne Spitzhacke
      - Faltungshall (generierte Impulsantwort) als "Stollen-Raum" fuer Musik, Ambience und SFX
      Drei Intensitaeten, weich ueberblendet: 0 Ruhe (Menue/Bauphase), 1 Kampf (Welle), 2 Boss. */
-  const BPM = 72, BEAT = 60 / BPM;
+  /* TRACKS (Overhaul v3.1): ein Stueck pro Region plus Menue. Alle nutzen dieselbe
+     Maschine (Pads, Melodie mit Motiv-Gedaechtnis, Arpeggio, Schmiede-Percussion,
+     3 Intensitaeten). Sie unterscheiden sich in Tempo, Tonart, Akkordfolge, Tonleiter,
+     Grundton der Drone und im Klang der Melodiestimme (lead).
+     bossShift verschiebt das Boss-Thema in die Tonart des Tracks. */
+  const TRACKS = {
+    menu:    { bpm:64, lead:'bell',  drone:[55, 55.3, 82.41], bossShift:0,
+               prog:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]], scale:[57,60,62,64,67,69,72,74,76,79] },
+    floez:   { bpm:72, lead:'bell',  drone:[55, 55.3, 82.41], bossShift:0,
+               prog:[[57,60,64],[53,57,60],[48,52,55],[55,59,62],[57,60,64],[52,55,59],[53,57,60],[55,59,62]], scale:[57,60,62,64,67,69,72,74,76,79] },
+    // D dorisch, beschwingt, gezupfte Melodie (Marimba-Charakter)
+    pilz:    { bpm:84, lead:'pluck', drone:[73.42, 73.8, 110], bossShift:5,
+               prog:[[50,53,57],[55,59,62],[48,52,55],[57,60,64],[50,53,57],[53,57,60],[55,59,62],[57,60,64]], scale:[62,64,65,67,69,71,74,76,77,79] },
+    // E-Moll, langsam und weit, glaeserne Melodie
+    grotte:  { bpm:58, lead:'glass', drone:[41.2, 41.4, 61.74], bossShift:-5,
+               prog:[[52,55,59],[48,52,55],[55,59,62],[50,54,57]], scale:[64,67,69,71,74,76,79,81,83,86] },
+    // E phrygisch, schnell und dunkel, Rohrblatt-Melodie
+    schlund: { bpm:94, lead:'reed',  drone:[41.2, 41.5, 82.4], bossShift:-5,
+               prog:[[52,55,59],[53,57,60],[52,55,59],[50,53,57]], scale:[64,65,67,69,71,72,74,76,77,79] }
+  };
+  let track = TRACKS.menu;
+  let BEAT = 60 / track.bpm;
   let musicBus = null, reverb = null, ambGain = null, noiseBuf = null;
   let layer = null;
   let intensity = 0;
@@ -1382,6 +1416,42 @@ const Sound = (() => {
     car.start(t); mod.start(t); car.stop(t + 2.6); mod.stop(t + 2.6);
   }
 
+  /* Melodiestimme je nach Track */
+  function lead(n, t, vol){
+    if (track.lead === 'pluck'){ marimba(n, t, vol * 1.5); }
+    else if (track.lead === 'glass'){ glass(n, t, vol * 0.9); }
+    else if (track.lead === 'reed'){ reed(n, t, vol * 0.8); }
+    else bell(n, t, vol);
+  }
+  function marimba(n, t, vol){
+    const c = ctx, f = midi(n);
+    const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+    const o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = f * 4;
+    const g2 = c.createGain(); g2.gain.setValueAtTime(0.35, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    const out = envGain(c, t, 0.004, vol, 0.7, layer.mel);
+    o.connect(out); o2.connect(g2); g2.connect(out);
+    o.start(t); o2.start(t); o.stop(t + 0.8); o2.stop(t + 0.2);
+  }
+  function glass(n, t, vol){
+    const c = ctx, f = midi(n);
+    const car = c.createOscillator(); car.type = 'sine'; car.frequency.value = f;
+    const mod = c.createOscillator(); mod.type = 'sine'; mod.frequency.value = f * 7;
+    const mg = c.createGain(); mg.gain.setValueAtTime(f * 0.6, t); mg.gain.exponentialRampToValueAtTime(1, t + 1.2);
+    mod.connect(mg); mg.connect(car.frequency);
+    car.connect(envGain(c, t, 0.02, vol, 3.6, layer.mel));
+    car.start(t); mod.start(t); car.stop(t + 3.8); mod.stop(t + 3.8);
+  }
+  function reed(n, t, vol){
+    const c = ctx, f = midi(n);
+    const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f;
+    const vib = c.createOscillator(); vib.frequency.value = 5.5;
+    const vg = c.createGain(); vg.gain.value = f * 0.012;
+    vib.connect(vg); vg.connect(o.frequency);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = 2;
+    o.connect(lp); lp.connect(envGain(c, t, 0.03, vol, 0.55, layer.mel));
+    o.start(t); vib.start(t); o.stop(t + 0.7); vib.stop(t + 0.7);
+  }
+
   function pluck(n, t, vol){
     const c = ctx;
     const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = midi(n);
@@ -1433,8 +1503,9 @@ const Sound = (() => {
 
   function scheduleBeat(i, t){
     const boss = intensity === 2;
-    const prog = boss ? PROG_BOSS : PROG_CALM;
-    const scale = boss ? HARM : PENTA;
+    const sh = track.bossShift;
+    const prog = boss ? PROG_BOSS.map(ch => ch.map(n => n + sh)) : track.prog;
+    const scale = boss ? HARM.map(n => n + sh) : track.scale;
     const bar = Math.floor(i / 4), beat = i % 4;
     const chord = prog[bar % prog.length];
 
@@ -1454,7 +1525,7 @@ const Sound = (() => {
     for (let k = 0; k < 2; k++){
       const tt = t + k * BEAT / 2;
       const slot = (bar % 2) * 8 + beat * 2 + k;
-      if (melOn && motif && motif[slot] != null) bell(scale[motif[slot]], tt, boss ? 0.035 : 0.05);
+      if (melOn && motif && motif[slot] != null) lead(scale[motif[slot] % scale.length], tt, boss ? 0.035 : 0.05);
       if (intensity > 0){
         const arpNote = chord[(beat * 2 + k) % chord.length] + 12;
         pluck(arpNote, tt, 0.022);
@@ -1477,9 +1548,9 @@ const Sound = (() => {
     lfo.connect(lfoG); lfoG.connect(lp.frequency);
     const g = c.createGain(); g.gain.value = 0.05;
     lp.connect(g); g.connect(layer.drone);
-    const oscs = [55, 55.3, 82.41].map(f => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(); return o; });
+    const oscs = track.drone.map(f => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(); return o; });
     lfo.start();
-    droneNodes = { oscs, lfo, lp };
+    droneNodes = { oscs, lfo, lp, g };
   }
 
   function startWind(){
@@ -1545,6 +1616,7 @@ const Sound = (() => {
     if (ambTimer){ clearTimeout(ambTimer); ambTimer = null; }
     const stopAll = nodes => { if (nodes) Object.values(nodes).flat().forEach(n => { try { n.stop && n.stop(); } catch(e){} }); };
     stopAll(droneNodes && { o: droneNodes.oscs, l: droneNodes.lfo }); droneNodes = null;
+    if (musicBus && ctx){ musicBus.gain.cancelScheduledValues(ctx.currentTime); musicBus.gain.setValueAtTime(0, ctx.currentTime); }
     stopAll(windNodes); windNodes = null;
   }
   function setIntensity(level){
@@ -1553,6 +1625,24 @@ const Sound = (() => {
     const target = LAYER_BY_INTENSITY[level];
     for (const k of Object.keys(target)) layer[k].gain.setTargetAtTime(target[k], ctx.currentTime, 1.2);
     if (droneNodes) droneNodes.lp.frequency.setTargetAtTime(level === 2 ? 420 : 200, ctx.currentTime, 2);
+  }
+
+  /* Wechselt das Stueck. Tempo, Tonart und Melodiestimme greifen ab dem naechsten Schlag,
+     die Drone blendet in 1,5 s auf den neuen Grundton um. */
+  function setTrack(name){
+    const next = TRACKS[name] || TRACKS.floez;
+    if (next === track) return;
+    track = next;
+    BEAT = 60 / track.bpm;
+    motif = null; lastMelIdx = 4;
+    if (ctx && droneNodes){
+      const old = droneNodes, t = ctx.currentTime;
+      old.g.gain.setTargetAtTime(0, t, 0.4);
+      setTimeout(() => { try { old.oscs.forEach(o => o.stop()); old.lfo.stop(); } catch(e){ /* schon gestoppt */ } }, 1800);
+      droneNodes = null;
+      startDrone();
+      if (intensity === 2) droneNodes.lp.frequency.value = 420;
+    }
   }
 
   function setSoundMode(mode){
@@ -1570,7 +1660,7 @@ const Sound = (() => {
     unlock(){ ensureCtx(); },
     setSoundMode, cycleSoundMode,
     getSoundMode(){ return soundMode; },
-    startMusic, stopMusic, setIntensity,
+    startMusic, stopMusic, setIntensity, setTrack,
     shoot(){ beep(660, 0.06, 'square', 0.045); },
     hit(){ beep(220, 0.05, 'triangle', 0.05); },
     coin(){ beep(880, 0.09, 'sine', 0.06, 1200); },
@@ -1628,6 +1718,7 @@ const state = {
   pointerPos: null,          // exakte Zeigerposition in logischen Koordinaten (Bomben-Vorschau)
   dragging: false,           // Touch-Geste laeuft: Finger liegt auf dem Feld (Druecken-Ziehen-Loslassen)
   dragPointerId: null,
+  totalTowerDamage: 0,       // Summe aller Turm-Schadenszaehler dieser Runde (fuer den Anteil in Prozent)
   focusId: null,             // markierter Gegner (Antippen): alle Tuerme in Reichweite schiessen zuerst auf ihn
   forge: { dmg:0, rate:0, repair:0 }, // Kaeufe im Schmiedewerk (Endlos-Modus), siehe FORGE_UPGRADES
   bombArmed: false,          // Bombe gekauft-und-scharf: naechster Canvas-Klick zuendet
@@ -1651,6 +1742,7 @@ function resetRunState(){
   state.lives = Math.round(STARTING_LIVES * tierCfg.livesMult);
   state.maxLives = state.lives;
   state.focusId = null;
+  state.totalTowerDamage = 0;
   state.forge = { dmg:0, rate:0, repair:0 };
   state.pointerPos = null; state.dragging = false; state.hoverCell = null;
   state.waveNumber = 0;
@@ -1895,13 +1987,14 @@ function clientToLogical(clientX, clientY){
 /* =========================================================
    KARTENAUSWAHL mit Mini-Vorschau
    ========================================================= */
-function drawMiniMapPreview(canvas, mapDef){
+function drawMiniMapPreview(canvas, mapDef, mapKey){
   try {
     const c = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
     const sx = w / GRID_W, sy = h / GRID_H;
     c.clearRect(0,0,w,h);
-    c.fillStyle = '#1E1814'; c.fillRect(0, 0, w, h);
+    const R = regionOf(mapKey);
+    c.fillStyle = R.slabs[1]; c.fillRect(0, 0, w, h);
     (mapDef.blocked || []).forEach(([col, row]) => {
       c.fillStyle = '#4A3F37';
       c.fillRect((col*CELL + 8)*sx, (row*CELL + 8)*sy, (CELL - 16)*sx, (CELL - 16)*sy);
@@ -1910,7 +2003,7 @@ function drawMiniMapPreview(canvas, mapDef){
     c.lineCap = 'square'; c.lineJoin = 'miter';
     const trace = () => { c.beginPath(); px.forEach((p,i) => { const x=p.x*sx, y=p.y*sy; if(i===0) c.moveTo(x,y); else c.lineTo(x,y); }); };
     trace(); c.strokeStyle = INK; c.lineWidth = CELL*sx + 3; c.stroke();
-    trace(); c.strokeStyle = '#8A725C'; c.lineWidth = CELL*sx - 3; c.stroke();
+    trace(); c.strokeStyle = R.path; c.lineWidth = CELL*sx - 3; c.stroke();
     // Start (Stollen) und Ziel (Schmiede)
     const s = px[0], e = px[px.length-1];
     c.fillStyle = '#000'; c.beginPath(); c.arc(s.x*sx, s.y*sy, 6.5, 0, Math.PI*2); c.fill();
@@ -1949,11 +2042,11 @@ function initMapSelection(){
       card.innerHTML =
         '<div class="map-card-head"><span class="map-card-name">'+def.name+'</span></div>' +
         '<canvas width="320" height="180"></canvas>' +
-        '<div class="map-card-meta"><span>' + mapTotalWaves(key) + ' Wellen · max. ' + def.maxTowers + ' Türme</span>' +
+        '<div class="map-card-meta"><span>' + regionOf(key).name + ' · max. ' + def.maxTowers + ' Türme</span>' +
         (best ? '<button class="map-card-hs-badge" data-map="'+key+'" title="Bestenliste ansehen">Beste: Welle '+best+'</button>' : '<span>noch nicht gespielt</span>') +
         '</div>';
       grid.appendChild(card);
-      drawMiniMapPreview(card.querySelector('canvas'), def);
+      drawMiniMapPreview(card.querySelector('canvas'), def, key);
 
       const start = () => { closeMapSelectModal(); startGame(key); };
       card.addEventListener('click', start);
@@ -2062,13 +2155,14 @@ function startGame(mapKey){
      der Button weiter den Tempowert der Vorrunde an (Playtest-Befund 5.3). */
   dom.speedBtn.textContent = state.speedMultiplier + '×';
   Sound.unlock();
+  Sound.setTrack(regionOf(mapKey).track);
   Sound.startMusic();
 }
 
 /* Zurueck zum Startbildschirm (aus dem Menue oder nach Spielende) */
 function leaveGame(){
   dom.gameOverModal.classList.remove('show');
-  Sound.stopMusic();
+  Sound.setTrack('menu'); // die Musik laeuft weiter, nur das Stueck wechselt
   showScreen('start');
 }
 
@@ -2169,7 +2263,7 @@ let waveBannerTimeout = null;
 function showWaveBanner(wave){
   if (waveBannerTimeout) clearTimeout(waveBannerTimeout);
   dom.waveBanner.innerHTML = 'WELLE ' + wave.wave +
-    '<span class="sub">' + (wave.isBoss ? 'Bosswelle. Der Drache kommt.' : (wave.era ? wave.era.name + ' · ' + wave.era.hint : MAPS[state.mapKey].name)) + '</span>';
+    '<span class="sub">' + (wave.isBoss ? 'Bosswelle. Der Drache kommt.' : (wave.era ? wave.era.name + ' · ' + wave.era.hint : MAPS[state.mapKey].name + ' · ' + regionOf(state.mapKey).name)) + '</span>';
   dom.waveBanner.classList.toggle('boss', !!wave.isBoss);
   dom.waveBanner.classList.add('show');
   waveBannerTimeout = setTimeout(() => dom.waveBanner.classList.remove('show'), 2200);
@@ -2357,11 +2451,29 @@ function closeLeaderboardModal(){
   dom.leaderboardModal.classList.remove('show');
 }
 
+/* Die 5 Tuerme mit dem meisten Schaden, mit Balken im Verhaeltnis zum besten Turm.
+   Verkaufte Tuerme fehlen, ihr Zaehler geht mit dem Turm. */
+function renderTowerRanking(){
+  const list = $('towerRankList');
+  const top = state.towers.filter(t => (t.dmgDone || 0) > 0).sort((a, b) => b.dmgDone - a.dmgDone).slice(0, 5);
+  $('towerRankSection').style.display = top.length ? '' : 'none';
+  list.innerHTML = '';
+  top.forEach(tw => {
+    const def = TOWER_TYPES[tw.type], lvl = towerLevelStats(tw, def);
+    const label = def.name + (tw.level === PARAGON_LEVEL_INDEX ? ' (Paragon)' : (tw.level === LEVEL4_INDEX ? ' (' + lvl.title + ')' : ' Stufe ' + (tw.level + 1)));
+    const li = document.createElement('li');
+    li.innerHTML = '<div>' + label + '<div class="bar" style="width:' + Math.max(4, Math.round(tw.dmgDone / top[0].dmgDone * 100)) + '%"></div></div>' +
+      '<b>' + fmtShort(tw.dmgDone) + '</b>';
+    li.prepend(towerIcon(tw.type, 30, tw.level));
+    list.appendChild(li);
+  });
+}
 function fillGameOverStats(){
   dom.statWave.textContent = state.waveNumber;
   dom.statKills.textContent = state.totalKills;
   dom.statKohle.textContent = state.totalKohleEarned;
   dom.statTime.textContent = fmtTime(state.playTime);
+  renderTowerRanking();
   renderHighscoreSection();
   /* Der Loop steht nach Spielende - Wellen-Feld und Kopfzeile hier einmal nachziehen,
      sonst bleibt hinter dem Modal ein aktiver Start-Knopf stehen (Playtest-Befund 7). */
@@ -2543,6 +2655,11 @@ function closeTutorialHint(){
 /* =========================================================
    SCHADEN, TÜRME, PROJEKTILE, GLUTWICHTE
    ========================================================= */
+/* SCHADENSZAEHLER (Overhaul v3.1): dmgCredit zeigt auf den Turm, dem der gerade verrechnete
+   Schaden gehoert. updateProjectiles()/updateImps() setzen ihn vor dem Treffer und loeschen
+   ihn danach. Gezaehlt wird nur wirklich abgezogenes Leben - Ueberschaden am letzten Treffer
+   und geschluckte Treffer (Schild, Immunitaet) zaehlen nicht. Die Bombe gehoert keinem Turm. */
+let dmgCredit = null;
 /* opts (Overhaul v3): { pierce, bossMult } - Sondereffekte der Stufe-4-Varianten. */
 function applyDamageToEnemy(e, amount, source, dmgType, opts){
   if (e.hp <= 0) return;
@@ -2587,6 +2704,11 @@ function applyDamageToEnemy(e, amount, source, dmgType, opts){
     }
   }
   if (opts && opts.bossMult && e.type === 'boss') dealt *= opts.bossMult;
+  if (dmgCredit && dealt > 0){
+    const real = Math.min(dealt, e.hp);
+    dmgCredit.dmgDone = (dmgCredit.dmgDone || 0) + real;
+    state.totalTowerDamage += real;
+  }
   e.hp -= dealt;
   if (dealt > 0) e.hitFlash = 0.12;
   if (e.hp <= 0){
@@ -2605,6 +2727,7 @@ function applyDamageToEnemy(e, amount, source, dmgType, opts){
       Sound.coin();
     }
     state.totalKills++;
+    if (dmgCredit) dmgCredit.kills = (dmgCredit.kills || 0) + 1;
     if (state.focusId === e.id) state.focusId = null;
     spawnKillEffect(e, paidAmount, source === 'bomb');
     /* Brutmutter: zerfaellt in kleinere Gegner, die an derselben Stelle weiterlaufen. */
@@ -2743,7 +2866,7 @@ function updateTowers(dt){
         if (groundAlive === null) groundAlive = state.enemies.some(e => e.hp > 0 && impCanTarget(e));
         if (groundAlive){
           const hp = Math.round(lvl.childHp * dmgMult);
-          state.imps.push({ id: state.nextEntityId++, ownerId: tw.id, x: tw.x, y: tw.y, hp, maxHp: hp, targetId: null, splash: lvl.impSplash || 0 });
+          state.imps.push({ id: state.nextEntityId++, ownerId: tw.id, x: tw.x, y: tw.y, hp, maxHp: hp, targetId: null, splash: lvl.impSplash || 0, owner: tw });
           impCount[tw.id] = (impCount[tw.id] || 0) + 1;
           tw.spawnTimer = lvl.interval / rateMult;
           tw.recoil = 1;
@@ -2758,7 +2881,7 @@ function updateTowers(dt){
     for (const target of targets){
       state.projectiles.push({
         x: tw.x, y: tw.y, targetId: target.id, speed: 420,
-        dmg: lvl.dmg * dmgMult, lvl, groundOnly: !!def.groundOnly,
+        dmg: lvl.dmg * dmgMult, lvl, groundOnly: !!def.groundOnly, owner: tw,
         color: def.color, kind: tw.type, dmgType: def.dmgType, angle: 0, trail: []
       });
     }
@@ -2779,6 +2902,7 @@ function updateProjectiles(dt){
     const step = p.speed*dt;
     if (d <= step){
       const L = p.lvl;
+      dmgCredit = p.owner || null;
       const opts = (L.pierce || L.bossMult) ? L : null;
       applyDamageToEnemy(target, p.dmg, undefined, p.dmgType, opts);
       spawnHitSpark(target.x, target.y, p.color);
@@ -2821,6 +2945,7 @@ function updateProjectiles(dt){
           from = next;
         }
       }
+      dmgCredit = null;
     } else {
       p.angle = Math.atan2(target.y - p.y, target.x - p.x);
       p.trail.push({ x:p.x, y:p.y });
@@ -2870,6 +2995,7 @@ function updateImps(dt){
     const d = dist(imp, target);
     const step = 70*dt;
     if (d <= 14){
+      dmgCredit = imp.owner || null;
       applyDamageToEnemy(target, imp.hp, undefined, 'feuer'); // Glutwichte sind immer Ofen/Feuer, einziger Spawner-Turmtyp
       spawnHitSpark(target.x, target.y, PAL.ember);
       if (imp.splash){
@@ -2880,6 +3006,7 @@ function updateImps(dt){
         }
         state.particles.push({ type:'puff', x:target.x, y:target.y, r0:6, r1:imp.splash, color:PAL.ember, life:0.25, maxLife:0.25 });
       }
+      dmgCredit = null;
     } else {
       imp.x += (target.x - imp.x)/d*step;
       imp.y += (target.y - imp.y)/d*step;
@@ -3568,7 +3695,64 @@ function drawRubbleCell(c, col, row){
   c.restore();
 }
 
+/* =========================================================
+   REGIONEN (Overhaul v3.1): jede Karte liegt in einer Gegend des Bergwerks.
+   Die Gegend bestimmt Farben von Fels und Weg, die Dekoration auf den Bauplatten,
+   die Farbe von Adern und Funken und den Musik-Track (Sound.setTrack).
+   Die Wegfuehrung der Karten bleibt unveraendert - sie ist ueber maxTowers und die
+   Sperrfelder ausbalanciert (siehe Kommentar bei MAPS).
+   ========================================================= */
+const REGIONS = {
+  floez:   { name:'Kohleflöz',      track:'floez',   ground:'#100C0A', slabs:['#2E251F','#221B16','#28201B'], path:'#6B5645',
+             vein:'242,106,27', mote:'247,179,43', hatch:'240,228,204' },
+  pilz:    { name:'Pilzgrund',      track:'pilz',    ground:'#0A0F0B', slabs:['#243024','#1A2419','#1F2A1E'], path:'#6A6248',
+             vein:'123,224,160', mote:'150,240,170', hatch:'200,240,200' },
+  grotte:  { name:'Kristallgrotte', track:'grotte',  ground:'#080D10', slabs:['#22313A','#18242C','#1D2A33'], path:'#5F6E74',
+             vein:'98,216,207', mote:'170,235,240', hatch:'200,235,245' },
+  schlund: { name:'Glutschlund',    track:'schlund', ground:'#120706', slabs:['#331914','#241110','#2B1512'], path:'#6E4A3E',
+             vein:'255,90,40', mote:'255,140,60', hatch:'255,210,190' }
+};
+const MAP_REGION = {
+  tutorial:'floez', tal:'floez', schachtweg:'pilz', senkgrube:'grotte',
+  sKurve:'pilz', kesselkurve:'grotte', stollenbogen:'floez',
+  spirale:'schlund', tiefenspirale:'grotte', glutschlucht:'schlund'
+};
+function regionOf(mapKey){ return REGIONS[MAP_REGION[mapKey]] || REGIONS.floez; }
+
+/* Kleine Dekoration in einer Ecke der Bauplatte. Sie bleibt klein und dunkel genug,
+   dass ein Turm darauf gut lesbar ist. rnd ist der Karten-Zufall (deterministisch). */
+function drawRegionDecor(c, regionKey, x, y, rnd){
+  const ox = x + (rnd() < 0.5 ? 13 : CELL - 13), oy = y + (rnd() < 0.5 ? 14 : CELL - 12);
+  if (regionKey === 'pilz'){
+    // Leuchtpilze
+    for (const [dx, s] of [[-4, 1], [4, 0.7]]){
+      c.strokeStyle = INK; c.lineWidth = 3.2 * s; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(ox + dx, oy + 5); c.lineTo(ox + dx, oy - 1 * s); c.stroke();
+      c.strokeStyle = '#D9E8C0'; c.lineWidth = 1.4 * s; c.stroke();
+      c.beginPath(); c.ellipse(ox + dx, oy - 2 * s, 5 * s, 3.4 * s, 0, Math.PI, 0); c.closePath(); ink(c, '#58C48A', 1.5);
+    }
+  } else if (regionKey === 'grotte'){
+    // Kristallgruppe
+    poly(c, [ox - 6, oy + 5, ox - 4, oy - 5, ox - 1, oy + 5]); ink(c, '#2E8F9A', 1.5);
+    poly(c, [ox - 1, oy + 5, ox + 2, oy - 9, ox + 5, oy + 5]); ink(c, '#62D8CF', 1.5);
+    poly(c, [ox + 4, oy + 5, ox + 7, oy - 3, ox + 8, oy + 5]); ink(c, '#3FB8AF', 1.5);
+  } else if (regionKey === 'schlund'){
+    // Glutriss
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath(); c.moveTo(ox - 9, oy + 3); c.lineTo(ox - 3, oy - 2); c.lineTo(ox + 1, oy + 2); c.lineTo(ox + 8, oy - 4);
+    c.strokeStyle = INK; c.lineWidth = 4.5; c.stroke();
+    c.strokeStyle = '#E8501E'; c.lineWidth = 2; c.stroke();
+    c.strokeStyle = PAL.gold; c.lineWidth = 0.8; c.stroke();
+  } else {
+    // Kohlehaufen
+    poly(c, [ox - 7, oy + 5, ox - 4, oy - 2, ox + 1, oy + 5]); ink(c, '#1A1512', 1.5);
+    poly(c, [ox - 1, oy + 5, ox + 3, oy - 5, ox + 8, oy + 5]); ink(c, '#231C18', 1.5);
+    c.fillStyle = PAL.ember; circ(c, ox + 3, oy + 1, 1.1); c.fill();
+  }
+}
+
 function buildAtmoBackground(){
+  const R = regionOf(state.mapKey), regionKey = MAP_REGION[state.mapKey] || 'floez';
   const SS = 2; // Supersampling fuer scharfe Konturen auf HiDPI
   const cv = document.createElement('canvas');
   cv.width = GRID_W * SS; cv.height = GRID_H * SS;
@@ -3578,7 +3762,7 @@ function buildAtmoBackground(){
   const wp = state.waypoints;
 
   // 1) Fugen-Grund
-  c.fillStyle = '#100C0A'; c.fillRect(0, 0, GRID_W, GRID_H);
+  c.fillStyle = R.ground; c.fillRect(0, 0, GRID_W, GRID_H);
 
   // 2) Bauplatten mit Schnitzspuren (kurze parallele Kerben wie im Linolschnitt)
   c.lineCap = 'round';
@@ -3587,15 +3771,22 @@ function buildAtmoBackground(){
     const tone = rnd(), angBase = Math.floor(rnd()*4), n = 3 + Math.floor(rnd()*4);
     if (state.pathCells.has(key) || state.blockedCells.has(key)) continue;
     const x = col*CELL, y = row*CELL;
-    c.fillStyle = tone < 0.16 ? '#2E251F' : (tone < 0.34 ? '#221B16' : '#28201B');
+    c.fillStyle = tone < 0.16 ? R.slabs[0] : (tone < 0.34 ? R.slabs[1] : R.slabs[2]);
     roundRect(c, x + 2, y + 2, CELL - 4, CELL - 4, 6); c.fill();
     const ang = angBase * Math.PI/4 + 0.2;
     for (let k = 0; k < n; k++){
       const px = x + 9 + rnd()*(CELL - 18), py = y + 9 + rnd()*(CELL - 18), len = 5 + rnd()*9;
-      c.strokeStyle = rnd() < 0.5 ? 'rgba(240,228,204,0.075)' : 'rgba(0,0,0,0.4)';
+      c.strokeStyle = rnd() < 0.5 ? 'rgba(' + R.hatch + ',0.075)' : 'rgba(0,0,0,0.4)';
       c.lineWidth = 1.2 + rnd()*1.3;
       c.beginPath(); c.moveTo(px - Math.cos(ang)*len/2, py - Math.sin(ang)*len/2); c.lineTo(px + Math.cos(ang)*len/2, py + Math.sin(ang)*len/2); c.stroke();
     }
+  }
+
+  // 2b) Dekoration der Region auf etwa jeder siebten Bauplatte
+  for (let row = 0; row < ROWS; row++) for (let col = 0; col < COLS; col++){
+    const pick = rnd();
+    if (pick > 0.15 || state.pathCells.has(col + ',' + row) || state.blockedCells.has(col + ',' + row)) continue;
+    drawRegionDecor(c, regionKey, col*CELL, row*CELL, rnd);
   }
 
   // 3) Kohleadern mit Glutpunkten (die Punkte glimmen animiert, siehe atmoBegin)
@@ -3612,7 +3803,7 @@ function buildAtmoBackground(){
   // 4) Weg: Tintenkante, helle Flaeche, Kerben
   c.lineCap = 'square'; c.lineJoin = 'miter';
   tracePts(c, wp); c.strokeStyle = INK; c.lineWidth = CELL + 2; c.stroke();
-  tracePts(c, wp); c.strokeStyle = '#6B5645'; c.lineWidth = CELL - 6; c.stroke();
+  tracePts(c, wp); c.strokeStyle = R.path; c.lineWidth = CELL - 6; c.stroke();
   c.save();
   c.beginPath();
   state.pathCells.forEach(k => { const [cc, rr] = k.split(',').map(Number); c.rect(cc*CELL + 3, rr*CELL + 3, CELL - 6, CELL - 6); });
@@ -3704,6 +3895,7 @@ function buildAtmoBackground(){
   circ(c, bp.x, bp.y, 15); ink(c, '#1A0E08', 2.5);
 
   Atmo.bg = cv;
+  Atmo.region = R;
   Atmo.bgKey = state.mapKey + '|' + state.blockedCells.size;
 
   // Vignette einmal vorrendern
@@ -3762,7 +3954,7 @@ function atmoBegin(){
 
   for (const v of Atmo.veins){
     const a = 0.35 + 0.45 * (0.5 + 0.5*Math.sin(Atmo.time * v.sp + v.ph));
-    ctx.fillStyle = 'rgba(242,106,27,' + a.toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(' + Atmo.region.vein + ',' + a.toFixed(3) + ')';
     circ(ctx, v.x, v.y, 1.8); ctx.fill();
   }
   drawAtmoForge();
@@ -3807,7 +3999,7 @@ function atmoGlow(){
   for (const p of state.particles) if (p.type === 'blast') glow(p.x, p.y, p.radius, (0.4 * p.life / p.maxLife).toFixed(3));
   for (const m of Atmo.motes){
     const a = Math.min(1, m.life / 1.5) * (0.5 + 0.5*Math.sin(t*6 + m.ph));
-    ctx.fillStyle = 'rgba(247,179,43,' + Math.max(0, a).toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(' + Atmo.region.mote + ',' + Math.max(0, a).toFixed(3) + ')';
     circ(ctx, m.x, m.y, m.r); ctx.fill();
   }
   ctx.restore();
@@ -4279,6 +4471,7 @@ function syncSelectionPanel(){
       '<div class="sel-level-dots" title="Stufe">' + dots + '</div></div>' +
       '<button class="sel-close" id="selCloseBtn" aria-label="Auswahl schließen">' + ic('close') + '</button></div>' +
     '<div class="sel-stats">' + towerStatsHtml(def, lvl) + '</div>' +
+    '<div class="sel-tally" id="selTally" title="Schaden dieses Turms in dieser Runde"></div>' +
     modes +
     '<div class="sel-actions">' + primary +
       '<button class="btn btn-danger" id="selSellBtn">' + ic('sell') + 'Verkaufen<span class="cost">+' + refund + '</span></button>' +
@@ -4287,6 +4480,7 @@ function syncSelectionPanel(){
   dom.selectionPanel.classList.toggle('choosing', choosing);
   dom.rail.classList.toggle('choosing', choosing);
 
+  $('selTally').innerHTML = towerTallyHtml(tw);
   dom.selectionPanel.classList.add('show');
   $('selCloseBtn').addEventListener('click', () => { state.selectedTowerId = null; syncSelectionPanel(); });
   const btnA = $('selUpgradeBtnA'), btnB = $('selUpgradeBtnB');
@@ -4332,10 +4526,24 @@ function upgradeTower(id, variant){
 /* Leichtgewichtiger Refresh: nur den "leistbar"-Status togglen, NIE das DOM neu aufbauen
    (ein kompletter Rebuild alle paar hundert ms hat Klicks verschluckt, weil der Button-Knoten
    dabei ausgetauscht wurde - siehe Bugfix). */
+/* 12345 -> "12,3k": kurze Zahlen fuer den Schadenszaehler */
+function fmtShort(n){
+  n = Math.round(n);
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.', ',') + ' Mio';
+  if (n >= 10000) return (n / 1000).toFixed(1).replace('.', ',') + 'k';
+  return String(n);
+}
+function towerTallyHtml(tw){
+  const d = tw.dmgDone || 0;
+  const share = state.totalTowerDamage > 0 ? Math.round(d / state.totalTowerDamage * 100) : 0;
+  return ic('target') + '<span>Schaden <b>' + fmtShort(d) + '</b> · ' + share + ' % · besiegt <b>' + (tw.kills || 0) + '</b></span>';
+}
 function refreshSelectionAffordability(){
   if (!state.selectedTowerId) return;
   const tw = state.towers.find(t => t.id === state.selectedTowerId);
   if (!tw) return;
+  const tally = document.getElementById('selTally');
+  if (tally) setHtmlIfChanged(tally, towerTallyHtml(tw));
   const def = TOWER_TYPES[tw.type];
   const nextLvl = def.levels[tw.level+1];
   if (nextLvl){
