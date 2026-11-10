@@ -63,6 +63,27 @@ create policy "eintragen" on scores for insert with check (true);
 
 Hinweis: Die Einträge kommen ungeprüft aus dem Browser. Wer will, kann falsche Werte senden. Für eine Liste unter Freunden reicht das. Löschen und Ändern erlaubt die Tabelle niemandem.
 
+## Neuigkeiten und Kommentare
+
+Das Menü hat eine Seite „Neuigkeiten“ mit dem Änderungsprotokoll. Neuer Eintrag = neues Objekt ganz oben in `CHANGELOG` in `index.html`. Die `id` muss eindeutig und stabil bleiben, an ihr hängen die Kommentare.
+
+Kommentare nutzen dasselbe Supabase-Projekt wie die Bestenliste. Ohne die Tabelle bleibt die Seite lesbar, das Kommentarfeld meldet dann „noch nicht eingerichtet“. Skript für den SQL-Editor:
+
+```sql
+create table comments (
+  id uuid primary key default gen_random_uuid(),
+  entry text not null check (char_length(entry) between 1 and 40),
+  name text not null check (char_length(name) between 1 and 16),
+  text text not null check (char_length(text) between 1 and 300),
+  created_at timestamptz default now()
+);
+alter table comments enable row level security;
+create policy "lesen" on comments for select using (true);
+create policy "eintragen" on comments for insert with check (true);
+```
+
+Moderation: Löschen geht nur im Supabase Table Editor. Im Spiel gilt eine Wartezeit von 30 Sekunden pro Browser. Sie hält Spam nicht auf, wenn jemand die Schnittstelle direkt anspricht. Texte erscheinen als reiner Text, nie als HTML.
+
 ## Für Entwickler
 
 - Kommentare im Code sind auf Deutsch. „Feedback N" verweist auf frühere Playtest-Runden, „Overhaul v3" auf den Umbau von Optik, Steuerung und Wellen.
